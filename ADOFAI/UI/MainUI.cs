@@ -37,7 +37,7 @@ public static class MainUI {
     }
 
     public static void CreateMenu(RectTransform parent)
-        => MenuFactory.CreateItem(parent, "ADOFAI", Core.Spr.Get("Image.ADOFAI.png"), 100)
+        => MenuFactory.CreateItem(parent, "ADOFAI", Core.Spr.Get("Image.Adofai128.png"), 100)
         .label.gameObject.AddComponent<TextLocalization>().Init("ADOFAI", "ADOFAI", Core.Tr);
 
     private static readonly Dictionary<string, O5Object> objects = [];
