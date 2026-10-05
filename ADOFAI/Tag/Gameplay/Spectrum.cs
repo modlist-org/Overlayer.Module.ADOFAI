@@ -6,7 +6,7 @@ using UnityEngine;
 namespace Overlayer.Module.ADOFAI.Tag.Gameplay;
 
 public static class Spectrum {
-    private static readonly Dictionary<int, float[]> buffers = new();
+    private static readonly Dictionary<int, (float[] buf, int frame)> buffers = new();
     private static readonly object lockObj = new();
 
     private static int ClampSize(int size) {
@@ -24,19 +24,24 @@ public static class Spectrum {
             return null;
         }
         size = ClampSize(size);
+        int frame = UnityEngine.Time.frameCount;
         float[] buf;
         lock(lockObj) {
-            if(!buffers.TryGetValue(size, out buf)) {
-                buf = new float[size];
-                buffers[size] = buf;
+            if(buffers.TryGetValue(size, out var cached) && cached.frame == frame) {
+                return cached.buf;
             }
+            buf = cached.buf;
+            if(buf == null) {
+                buf = new float[size];
+            }
+            try {
+                song.GetSpectrumData(buf, 0, FFTWindow.BlackmanHarris);
+            } catch {
+                return null;
+            }
+            buffers[size] = (buf, frame);
+            return buf;
         }
-        try {
-            song.GetSpectrumData(buf, 0, FFTWindow.BlackmanHarris);
-        } catch {
-            return null;
-        }
-        return buf;
     }
 
     [Tag(TagType = TagType.BlockOnNotPlaying, Desc = "Spectrum magnitude of a band (raw)")]

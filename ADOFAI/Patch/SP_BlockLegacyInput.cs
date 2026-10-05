@@ -2,6 +2,7 @@ using HarmonyLib;
 using Overlayer.Patch.Safe;
 using Overlayer.UI;
 using O5Kit.Control;
+using System;
 using System.Collections.Generic;
 using System.Reflection;
 using UnityEngine;
@@ -58,16 +59,36 @@ public sealed class SP_BlockDirectInput(string typeName, string methodName)
 internal static class InputBlocker {
     internal static bool IsOpen => UICore.CanvasObj != null && UICore.CanvasObj.activeInHierarchy;
 
-    internal static readonly Dictionary<MethodInfo, MethodInfo> Replacements = new() {
-        [GetInputMethod(nameof(Input.GetKey))] = GetReplacement(nameof(GetKey)),
-        [GetInputMethod(nameof(Input.GetKeyDown))] = GetReplacement(nameof(GetKeyDown)),
-        [GetInputMethod(nameof(Input.GetKeyUp))] = GetReplacement(nameof(GetKeyUp))
-    };
+    private static readonly object gate = new();
+    private static Dictionary<MethodInfo, MethodInfo> replacements;
 
-    private static MethodInfo GetInputMethod(string name)
-        => typeof(Input).GetMethod(name, BindingFlags.Public | BindingFlags.Static, null, [typeof(KeyCode)], null)!;
-    private static MethodInfo GetReplacement(string name)
-        => typeof(InputBlocker).GetMethod(name, BindingFlags.Static | BindingFlags.NonPublic)!;
+    internal static Dictionary<MethodInfo, MethodInfo> Replacements {
+        get {
+            lock(gate) {
+                if(replacements == null) {
+                    replacements = new Dictionary<MethodInfo, MethodInfo>();
+                    AddReplacement(nameof(Input.GetKey), nameof(GetKey));
+                    AddReplacement(nameof(Input.GetKeyDown), nameof(GetKeyDown));
+                    AddReplacement(nameof(Input.GetKeyUp), nameof(GetKeyUp));
+                }
+                return replacements;
+            }
+        }
+    }
+
+    private static void AddReplacement(string inputName, string replacementName) {
+        try {
+            var original = typeof(Input).GetMethod(inputName, BindingFlags.Public | BindingFlags.Static, null, [typeof(KeyCode)], null);
+            var replacement = typeof(InputBlocker).GetMethod(replacementName, BindingFlags.Static | BindingFlags.NonPublic);
+            if(original == null || replacement == null) {
+                Core.Logger.Wrn($"[InputBlocker] Skipping {inputName}: method not found, input blocking partially disabled.");
+                return;
+            }
+            replacements[original] = replacement;
+        } catch(Exception e) {
+            Core.Logger.Wrn($"[InputBlocker] Skipping {inputName}: {e.Message}");
+        }
+    }
 
     private static bool GetKey(KeyCode key) => !IsOpen && Input.GetKey(key);
     private static bool GetKeyDown(KeyCode key) => !IsOpen && Input.GetKeyDown(key);

@@ -51,10 +51,10 @@ public static class Song {
     [Tag(Desc = "Editor pitch")] public static double EditorPitch => (Level() == null ? 100 : GameAccess.LevelPitch.Get(Level())) / 100d;
     [Tag(Desc = "Tile BPM (with pitch)")] public static double TileBpm => BaseBpm * CurrentSpeed * SongPitch;
     [Tag(Desc = "Current BPM (with pitch)")] public static double CurBpm => RealBpm * SongPitch;
-    [Tag(Desc = "Keys per second")] public static double KPS => CurBpm / 60d;
+    [Tag(Desc = "Keys per second (from BPM)")] public static double BpmKps => CurBpm / 60d;
     [Tag(Desc = "Tile BPM (pitch excluded)")] public static double TileBpmWithoutPitch => BaseBpm * CurrentSpeed;
     [Tag(Desc = "Current BPM (pitch excluded)")] public static double CurBpmWithoutPitch => RealBpm;
-    [Tag(Desc = "Keys per second (pitch excluded)")] public static double KPSWithoutPitch => CurBpmWithoutPitch / 60d;
+    [Tag(Desc = "Keys per second (from BPM, pitch excluded)")] public static double BpmKpsWithoutPitch => CurBpmWithoutPitch / 60d;
 
     private static double BaseBpm {
         get {

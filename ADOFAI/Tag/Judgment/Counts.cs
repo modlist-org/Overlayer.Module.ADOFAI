@@ -4,11 +4,25 @@ using Overlayer.Utility.Access;
 namespace Overlayer.Module.ADOFAI.Tag.Judgment;
 
 public static class Counts {
+    private static int snapshotFrame = -1;
+    private static object snapshotTracker;
+    private static readonly System.Collections.Generic.Dictionary<string, int> snapshotCounts = new(System.StringComparer.Ordinal);
+
     private static object Tracker() {
         var controller = GameAccess.Controller.Get(null);
         if(controller == null) return null;
         var player = GameAccess.PlayerOne.Get(controller);
         return player == null ? null : GameAccess.MarginTracker.Get(player);
+    }
+
+    private static object SnapshotTracker() {
+        int frame = UnityEngine.Time.frameCount;
+        if(snapshotFrame != frame) {
+            snapshotFrame = frame;
+            snapshotTracker = Tracker();
+            snapshotCounts.Clear();
+        }
+        return snapshotTracker;
     }
 
     [Tag(TagType = TagType.BlockOnNotPlaying, Desc = "Too Early")]     public static int TE => CurrentCount("TooEarly");
@@ -38,26 +52,29 @@ public static class Counts {
     [Tag(TagType = TagType.BlockOnNotPlaying, Desc = "Number of Multipresses")] public static int Multipress => CurrentCount("Multipress");
     [Tag(TagType = TagType.BlockOnNotPlaying, Desc = "Number of OverPress")]    public static int OverPress => CurrentCount("OverPress");
 
-    [Tag(TagType = TagType.BlockOnNotPlaying, Desc = "Accuracy (0-1)")]  public static double Accuracy => GameAccess.PercentAcc.Get(Tracker(), float.NaN);
-    [Tag(TagType = TagType.BlockOnNotPlaying, Desc = "XAccuracy (0-1)")] public static double XAccuracy => GameAccess.PercentXAcc.Get(Tracker(), float.NaN);
+    [Tag(TagType = TagType.BlockOnNotPlaying, Desc = "Accuracy (0-1)")]  public static double Accuracy => GameAccess.PercentAcc.Get(SnapshotTracker(), float.NaN);
+    [Tag(TagType = TagType.BlockOnNotPlaying, Desc = "XAccuracy (0-1)")] public static double XAccuracy => GameAccess.PercentXAcc.Get(SnapshotTracker(), float.NaN);
     [Tag(TagType = TagType.BlockOnNotPlaying, Desc = "Accuracy (%)")]  public static double AccuracyPercent => Accuracy * 100d;
     [Tag(TagType = TagType.BlockOnNotPlaying, Desc = "XAccuracy (%)")] public static double XAccuracyPercent => XAccuracy * 100d;
 
-    [Tag(TagType = TagType.BlockOnNotPlaying, Desc = "X-Score")]       public static int XScore => GameAccess.XScoreValue.Get(Tracker(), 0);
-    [Tag(TagType = TagType.BlockOnNotPlaying, Desc = "Max X-Score")]   public static int MaxXScore => GameAccess.MaxXScoreValue.Get(Tracker(), 0);
-    [Tag(TagType = TagType.BlockOnNotPlaying, Desc = "Last X-Score")]  public static int LastXScore => GameAccess.LastXScoreValue.Get(Tracker(), 0);
+    [Tag(TagType = TagType.BlockOnNotPlaying, Desc = "X-Score")]       public static int XScore => GameAccess.XScoreValue.Get(SnapshotTracker(), 0);
+    [Tag(TagType = TagType.BlockOnNotPlaying, Desc = "Max X-Score")]   public static int MaxXScore => GameAccess.MaxXScoreValue.Get(SnapshotTracker(), 0);
+    [Tag(TagType = TagType.BlockOnNotPlaying, Desc = "Last X-Score")]  public static int LastXScore => GameAccess.LastXScoreValue.Get(SnapshotTracker(), 0);
 
     private static int CurrentCount(string margin) {
-        var tracker = Tracker();
-        var value = GameAccess.ParseHitMargin(margin);
-        if(tracker == null || value == null) return 0;
-        return SafeAccess.TryCall(tracker, "GetHits", out object result, value) && result is int count
-            ? count
-            : 0;
+        var tracker = SnapshotTracker();
+        if(tracker == null) return 0;
+        if(!snapshotCounts.TryGetValue(margin, out int count)) {
+            var value = GameAccess.ParseHitMargin(margin);
+            count = value == null ? 0
+                : SafeAccess.TryCall(tracker, "GetHits", out object result, value) && result is int c ? c : 0;
+            snapshotCounts[margin] = count;
+        }
+        return count;
     }
 
     private static int Deaths() {
-        var tracker = Tracker();
+        var tracker = SnapshotTracker();
         if(tracker == null) return 0;
         return SafeAccess.TryCall(tracker, "GetDeaths", out object result) && result is int count
             ? count

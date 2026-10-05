@@ -40,6 +40,21 @@ public class Core : OverlayerModule {
     private void OnLanguageChanged(string lang)
         => Tr.Language = lang;
 
+    private const string SupportedGameVersionPrefix = "3.4";
+
+    private static void CheckGameVersion() {
+        try {
+            string gameVersion = UnityEngine.Application.version;
+            if(string.IsNullOrWhiteSpace(gameVersion)
+                || !gameVersion.StartsWith(SupportedGameVersionPrefix + ".", StringComparison.Ordinal)) {
+                Logger.Wrn($"[ADOFAI Module] Untested game version '{gameVersion}' (supports {SupportedGameVersionPrefix}.x). Tags may misbehave after a game update.");
+            } else {
+                Logger.Msg($"[ADOFAI Module] Game version: {gameVersion}");
+            }
+        } catch {
+        }
+    }
+
     public static bool IsPlaying {
         get {
             var cdt = GameAccess.Conductor.Get(null);
@@ -72,6 +87,8 @@ public class Core : OverlayerModule {
         Tr.Language = MainCore.Tr.Language;
 
         ConfigFile.Load();
+
+        CheckGameVersion();
 
         SafeAccess.ModeOverride = Config.LazyAccess ? SafeResolveMode.Lazy : null;
         playbackStateRegistration = PlaybackState.Register(() => {
@@ -131,6 +148,18 @@ public class Core : OverlayerModule {
         // self-guarded (platform + config) and idempotent under ApplyAll.
         foreach(var patch in SafePatchController.Get<SP_LinuxTMPKeyInput>()) patch.Apply();
         foreach(var patch in SafePatchController.Get<SP_LinuxLegacyKeyInput>()) patch.Apply();
+        // Same for config-gated non-tag patches: toggles only ApplyState on
+        // change, so a saved true would start unpatched in lazy mode.
+        // Apply() no-ops when its config is off.
+        foreach(var patch in SafePatchController.Get<SP_BlockAsyncInput>()) patch.Apply();
+        foreach(var patch in SafePatchController.Get<SP_BlockLegacyInput>()) patch.Apply();
+        foreach(var patch in SafePatchController.Get<SP_BlockInputMethod>()) patch.Apply();
+        foreach(var patch in SafePatchController.Get<SP_BlockDirectInput>()) patch.Apply();
+        foreach(var patch in SafePatchController.Get<SP_ShowAutoJudgment>()) patch.Apply();
+        foreach(var patch in SafePatchController.Get<SP_FileAttemptLoad>()) patch.Apply();
+        foreach(var patch in SafePatchController.Get<SP_FileAttemptPlay>()) patch.Apply();
+
+        try { Tag.Input.Key.EnsureFeed(); } catch { }
 
         MainCore.Cam.CustomCameraProvider = () => {
             var cam = GameAccess.Cam.Get(null);
@@ -145,6 +174,16 @@ public class Core : OverlayerModule {
 
     public override void OnDispose() {
         GameAccess.DontShowTitles.TrySet(null, false);
+
+        RemoveModulePatches();
+
+        try {
+            if(MainCore.Cam != null) MainCore.Cam.CustomCameraProvider = null;
+        } catch { }
+        if(defaultTextFont != null) {
+            try { UnityEngine.Object.Destroy(defaultTextFont); } catch { }
+            defaultTextFont = null;
+        }
 
         Tag.Input.Key.Shutdown();
 
@@ -162,6 +201,30 @@ public class Core : OverlayerModule {
         MainCore.Tr.OnLanguageChanged -= OnLanguageChanged;
 
         ConfigFile.Save();
+    }
+
+    private static void RemoveModulePatches() {
+        var types = new System.Type[] {
+            typeof(Patch.SP_BlockAsyncInput),
+            typeof(Patch.SP_BlockLegacyInput),
+            typeof(Patch.SP_BlockInputMethod),
+            typeof(Patch.SP_BlockDirectInput),
+            typeof(Patch.SP_LinuxTMPKeyInput),
+            typeof(Patch.SP_LinuxLegacyKeyInput),
+            typeof(Patch.SP_ShowAutoJudgment),
+            typeof(Patch.SP_ResetTagState),
+            typeof(Patch.SP_RecordTiming),
+            typeof(Patch.SP_SessionAttemptLoad),
+            typeof(Patch.SP_SessionAttemptPlay),
+            typeof(Patch.SP_FileAttemptLoad),
+            typeof(Patch.SP_FileAttemptPlay),
+        };
+        foreach(var type in types) {
+            Overlayer.Patch.Safe.SafeConditionalPatch patch;
+            while((patch = Overlayer.Patch.Safe.SafePatchController.Find(type)) != null) {
+                try { Overlayer.Patch.Safe.SafePatchController.Remove(patch); } catch { break; }
+            }
+        }
     }
 
     public override string Name => Info.Name;

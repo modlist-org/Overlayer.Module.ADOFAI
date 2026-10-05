@@ -188,7 +188,7 @@ public static class MainUI {
         fileAttemptToggle.EnabledWhen = () => MainCore.IsModEnabled;
         fileAttemptToggle.Label.gameObject.AddComponent<TextLocalization>().Init("FILE_FEATURE", "File Feature", Core.Tr);
         objects[fileAttemptToggle.Id] = fileAttemptToggle;
-        fileAttemptToggle.Rect.AddToolTip(O5KitAdapters.Ctx, () => TooltipText("DESC_FILE_FEATURE", "Stores anything per map into Overlayer_Attempts.json next to it", "ADV_DESC_FILE_FEATURE", "Loads the file when a level loads and saves on every play.\n\nPowers the File_Attempts and File_TileAttempts tags."));
+        fileAttemptToggle.Rect.AddToolTip(O5KitAdapters.Ctx, () => TooltipText("DESC_FILE_FEATURE", "Stores anything per map into Overlayer_Attempts.json next to it", "ADV_DESC_FILE_FEATURE", "Loads the file when a level loads and saves on every play.\n\nPowers the FileAttempts and FileTileAttempts tags."));
 
         O5Toggle lazyPatchesToggle = O5Factory.Toggle(O5KitAdapters.Ctx,
             O5Factory.Row(O5KitAdapters.Ctx, content.transform),

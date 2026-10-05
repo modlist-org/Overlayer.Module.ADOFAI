@@ -1,3 +1,4 @@
+using System;
 using System.IO;
 
 namespace Overlayer.Module.ADOFAI.IO.File;
@@ -29,7 +30,11 @@ public sealed class FileStore {
     public void Save() {
         string? path = GetPath();
         if(path == null) return;
-        System.IO.File.WriteAllText(path, Data.Serialize().ToString(Newtonsoft.Json.Formatting.None));
+        try {
+            System.IO.File.WriteAllText(path, Data.Serialize().ToString(Newtonsoft.Json.Formatting.None));
+        } catch(Exception e) {
+            try { Core.Logger.Err($"[FileStore] Save failed: {e.Message}"); } catch { }
+        }
     }
 
     internal static bool HasGameRecord() {

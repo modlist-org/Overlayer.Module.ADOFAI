@@ -20,7 +20,7 @@
     "LINUX_TEXT_INPUT_FIX": "Linux 텍스트 입력 수정",
     "FILE_FEATURE": "파일 기능",
     "DESC_FILE_FEATURE": "맵 옆 Overlayer_Attempts.json에 맵별 데이터를 저장합니다",
-    "ADV_DESC_FILE_FEATURE": "레벨을 불러올 때 파일을 읽고 플레이할 때마다 저장합니다.\n\nFile_Attempts 및 File_TileAttempts 태그가 이 기능을 사용합니다.",
+    "ADV_DESC_FILE_FEATURE": "레벨을 불러올 때 파일을 읽고 플레이할 때마다 저장합니다.\n\nFileAttempts 및 FileTileAttempts 태그가 이 기능을 사용합니다.",
     "LAZY_PATCHES": "지연 패치",
     "DESC_LAZY_PATCHES": "태그가 실제로 사용될 때만 게임 패치를 적용합니다 (권장)",
     "ADV_DESC_LAZY_PATCHES": "지연 패치는 시작을 빠르게 유지하고, 태그가 패치를 필요로 하기 전까지 게임 코드를 건드리지 않다가 사용하지 않게 되면 해제합니다.\n\n태그가 많은 오버레이를 제작하는 중이라면 이 옵션을 꺼서 게임 시작 시 전부 적용하는것이 나을 수 있습니다",

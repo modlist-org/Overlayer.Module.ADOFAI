@@ -1,19 +1,20 @@
 using Overlayer.Tag.Core;
 using Overlayer.Utility.Access;
 using System;
+using UnityEngine;
 
 namespace Overlayer.Module.ADOFAI.Tag.Judgment;
 
 public static class Margin {
-    [Tag(TagType = TagType.BlockOnNotPlaying, Desc = "XPerfect margin (ms)")] public static double MarginXPms => TimeBounds().XPerfect * 1000d;
-    [Tag(TagType = TagType.BlockOnNotPlaying, Desc = "Inner Perfect margin (ms, +-30deg)")] public static double MarginIPms => TimeBounds().Pure * 1000d;
-    [Tag(TagType = TagType.BlockOnNotPlaying, Desc = "Outer Perfect margin (ms)")] public static double MarginOPms => TimeBounds().Perfect * 1000d;
-    [Tag(TagType = TagType.BlockOnNotPlaying, Desc = "Very margin (ms)")] public static double MarginVms => TimeBounds().Counted * 1000d;
+    [Tag(TagType = TagType.BlockOnNotPlaying, Desc = "XPerfect margin (ms)")] public static double MarginXPms => TimeBoundsCached().XPerfect * 1000d;
+    [Tag(TagType = TagType.BlockOnNotPlaying, Desc = "Inner Perfect margin (ms, +-30deg)")] public static double MarginIPms => TimeBoundsCached().Pure * 1000d;
+    [Tag(TagType = TagType.BlockOnNotPlaying, Desc = "Outer Perfect margin (ms)")] public static double MarginOPms => TimeBoundsCached().Perfect * 1000d;
+    [Tag(TagType = TagType.BlockOnNotPlaying, Desc = "Very margin (ms)")] public static double MarginVms => TimeBoundsCached().Counted * 1000d;
 
-    [Tag(TagType = TagType.BlockOnNotPlaying, Desc = "XPerfect margin (deg)")] public static double MarginXPdeg => AngleBounds().XPerfect;
-    [Tag(TagType = TagType.BlockOnNotPlaying, Desc = "Inner Perfect margin (deg)")] public static double MarginIPdeg => AngleBounds().Pure;
-    [Tag(TagType = TagType.BlockOnNotPlaying, Desc = "Outer Perfect margin (deg)")] public static double MarginOPdeg => AngleBounds().Perfect;
-    [Tag(TagType = TagType.BlockOnNotPlaying, Desc = "Very margin (deg)")] public static double MarginVdeg => AngleBounds().Counted;
+    [Tag(TagType = TagType.BlockOnNotPlaying, Desc = "XPerfect margin (deg)")] public static double MarginXPdeg => AngleBoundsCached().XPerfect;
+    [Tag(TagType = TagType.BlockOnNotPlaying, Desc = "Inner Perfect margin (deg)")] public static double MarginIPdeg => AngleBoundsCached().Pure;
+    [Tag(TagType = TagType.BlockOnNotPlaying, Desc = "Outer Perfect margin (deg)")] public static double MarginOPdeg => AngleBoundsCached().Perfect;
+    [Tag(TagType = TagType.BlockOnNotPlaying, Desc = "Very margin (deg)")] public static double MarginVdeg => AngleBoundsCached().Counted;
 
     [Tag(Desc = "Manual margin (ms): judgment, bpm, speed = 1, scale = 1")]
     public static double MarginCalcMs(string judgment, double bpm, double speed = 1, double scale = 1)
@@ -84,6 +85,29 @@ public static class Margin {
             Math.Max(0.02 / speed, HardCap),
             XPerfectMin
         );
+    }
+
+    private static int timeBoundsFrame = -1;
+    private static Bounds timeBoundsCache;
+    private static int angleBoundsFrame = -1;
+    private static Bounds angleBoundsCache;
+
+    private static Bounds TimeBoundsCached() {
+        int frame = UnityEngine.Time.frameCount;
+        if(frame != timeBoundsFrame) {
+            timeBoundsFrame = frame;
+            timeBoundsCache = TimeBounds();
+        }
+        return timeBoundsCache;
+    }
+
+    private static Bounds AngleBoundsCached() {
+        int frame = UnityEngine.Time.frameCount;
+        if(frame != angleBoundsFrame) {
+            angleBoundsFrame = frame;
+            angleBoundsCache = AngleBounds();
+        }
+        return angleBoundsCache;
     }
 
     private static Bounds TimeBounds() {

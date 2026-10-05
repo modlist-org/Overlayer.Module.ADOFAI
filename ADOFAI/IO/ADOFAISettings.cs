@@ -28,7 +28,7 @@ public sealed class ADOFAISettings : ISettingsFile {
         ShowAutoplayJudgment = Read(token, nameof(ShowAutoplayJudgment), ShowAutoplayJudgment);
         LinuxTextInputFix = Read(token, nameof(LinuxTextInputFix), LinuxTextInputFix);
         HideTitle = Read(token, nameof(HideTitle), HideTitle);
-        HideTitle = Read(token, nameof(HideTitle), HideTitle);
+        BlockInputWhenOpened = Read(token, nameof(BlockInputWhenOpened), BlockInputWhenOpened);
         FileFeature = Read(token, nameof(FileFeature), FileFeature);
         LazyPatches = Read(token, nameof(LazyPatches), LazyPatches);
         LazyAccess = Read(token, nameof(LazyAccess), LazyAccess);

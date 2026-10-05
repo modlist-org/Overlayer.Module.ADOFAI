@@ -85,10 +85,10 @@ public static class Status {
     public static int SessionAttempts => SessionAttemptState.Count;
     [Tag(Desc = "[File] Attempts")]
     [NeedsPatch(typeof(Patch.SP_FileAttemptLoad), typeof(Patch.SP_FileAttemptPlay))]
-    public static int File_Attempts => FileStoreState.Current.Data.Attempts;
+    public static int FileAttempts => FileStoreState.Current.Data.Attempts;
     [Tag(Desc = "[File] Attempts for a tile, current tile if -1")]
     [NeedsPatch(typeof(Patch.SP_FileAttemptLoad), typeof(Patch.SP_FileAttemptPlay))]
-    public static int File_TileAttempts(int tile = -1)
+    public static int FileTileAttempts(int tile = -1)
         => FileStoreState.Current.Data.GetTileAttempts(tile < 0 ? Progress.CurTile : tile);
     [Tag(Desc = "New map (no record)")]
     [NeedsPatch(typeof(Patch.SP_FileAttemptLoad), typeof(Patch.SP_FileAttemptPlay))]
@@ -99,7 +99,7 @@ public static class Status {
     public static double TimingMs => GameplayState.Timing;
     [Tag(TagType = TagType.BlockOnNotPlaying, Desc = "Average hit timing (ms)")]
     [NeedsPatch(typeof(Patch.SP_RecordTiming), typeof(Patch.SP_ResetTagState))]
-    public static double TimingAvgMs => GameplayState.Timings.Count == 0 ? 0 : GameplayState.Timings.Average();
+    public static double TimingAvgMs => GameplayState.TimingAverage;
     [Tag(TagType = TagType.BlockOnNotPlaying, Desc = "Timing Window Scale")] public static double MarginScale {
         get {
             var controller = Controller;
@@ -121,14 +121,20 @@ public static class Status {
         internal static double Timing;
         internal static double BestProgress;
         internal static readonly List<double> Timings = new();
+        internal static double TimingSum;
 
         internal static void RecordTiming(double value) {
             Timing = value;
             Timings.Add(value);
+            TimingSum += value;
         }
+
+        internal static double TimingAverage => Timings.Count == 0 ? 0 : TimingSum / Timings.Count;
 
         internal static void Reset() {
             Timing = 0;
+            BestProgress = 0;
+            TimingSum = 0;
             Timings.Clear();
         }
     }

@@ -20,7 +20,7 @@
     "LINUX_TEXT_INPUT_FIX": "Linux Text Input Fix",
     "FILE_FEATURE": "File Feature",
     "DESC_FILE_FEATURE": "Stores anything per map into Overlayer_Attempts.json next to it",
-    "ADV_DESC_FILE_FEATURE": "Loads the file when a level loads and saves on every play.\n\nPowers the File_Attempts and File_TileAttempts tags.",
+    "ADV_DESC_FILE_FEATURE": "Loads the file when a level loads and saves on every play.\n\nPowers the FileAttempts and FileTileAttempts tags.",
     "LAZY_PATCHES": "Lazy Patches",
     "DESC_LAZY_PATCHES": "Apply game patches only when their tags are used (recommended)",
     "ADV_DESC_LAZY_PATCHES": "Lazy keeps startup fast and leaves game code alone until a tag needs its patch, releasing it once unused.\n\nIf you're making overlays with lots of tags, turning this off to apply everything at game start may be better.",

@@ -2,6 +2,7 @@ using Overlayer.Tag.Core;
 using Overlayer.Utility.Access;
 using System;
 using System.Collections;
+using System.Collections.Generic;
 
 namespace Overlayer.Module.ADOFAI.Tag.Gameplay;
 
@@ -13,7 +14,25 @@ public static class Progress {
         return maker == null ? null : GameAccess.FloorList.Get(maker) as IList;
     }
 
-    private static readonly Type CheckpointType = Type.GetType("ffxCheckpoint, Assembly-CSharp");
+    private static Type CheckpointType
+        => _checkpointType ??= SafeAccess.FindType("ffxCheckpoint") ?? Type.GetType("ffxCheckpoint, Assembly-CSharp");
+    private static Type _checkpointType;
+
+    private static object checkpointFloors;
+    private static List<bool> checkpointFlags = new();
+
+    private static IReadOnlyList<bool> CheckpointFlags() {
+        var floors = Floors();
+        if(floors == null) return null;
+        if(!ReferenceEquals(checkpointFloors, floors) || checkpointFlags.Count != floors.Count) {
+            checkpointFloors = floors;
+            checkpointFlags = new List<bool>(floors.Count);
+            foreach(object floor in floors) {
+                checkpointFlags.Add(HasCheckpoint(floor));
+            }
+        }
+        return checkpointFlags;
+    }
 
     private static bool HasCheckpoint(object floor) {
         if(floor == null || CheckpointType == null) return false;
@@ -48,23 +67,25 @@ public static class Progress {
     [Tag(TagType = TagType.BlockOnNotPlaying, Desc = "Checkpoints used")] public static int CheckpointsUsed => GameAccess.CheckpointsUsedCount.Get(Controller, 0);
     [Tag(TagType = TagType.BlockOnNotPlaying, Desc = "Current checkpoint")] public static int CurCheckpoint {
         get {
+            var flags = CheckpointFlags();
+            if(flags == null) return 0;
             var floors = Floors();
-            if(floors == null) return 0;
             int seq = Controller == null ? 0 : GameAccess.CurrentSeqID.Get(Controller);
             int count = 0;
-            foreach(object floor in floors) {
-                if(floor != null && GameAccess.SeqID.Get(floor) <= seq && HasCheckpoint(floor)) count++;
+            for(int i = 0; i < flags.Count && i < floors.Count; i++) {
+                var floor = floors[i];
+                if(floor != null && GameAccess.SeqID.Get(floor) <= seq && flags[i]) count++;
             }
             return count;
         }
     }
     [Tag(TagType = TagType.BlockOnNotPlaying, Desc = "Total checkpoints")] public static int TotalCheckpoints {
         get {
-            var floors = Floors();
-            if(floors == null) return 0;
+            var flags = CheckpointFlags();
+            if(flags == null) return 0;
             int count = 0;
-            foreach(object floor in floors) {
-                if(HasCheckpoint(floor)) count++;
+            foreach(bool has in flags) {
+                if(has) count++;
             }
             return count;
         }

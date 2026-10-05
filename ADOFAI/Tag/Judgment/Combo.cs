@@ -17,13 +17,13 @@ public static class Combo {
         }
     }
 
-    public static int ComboValue => Tail(Current, IsPerfect);
+    public static int ComboValue => GetRuns("*", IsPerfect).tail;
     [Tag(Name = "Combo", TagType = TagType.BlockOnNotPlaying, Desc = "Current combo")] public static int ComboTag => ComboValue;
-    [Tag(TagType = TagType.ProcessFormat | TagType.BlockOnNotPlaying, Desc = "Max combo")] public static int MaxCombo => MaxRun(Current, IsPerfect);
-    [Tag(TagType = TagType.ProcessFormat | TagType.BlockOnNotPlaying, Desc = "Current combo of a judgment")] public static int MarginCombo(string margin) => Tail(Current, Matches(Parse(margin)));
-    [Tag(TagType = TagType.ProcessFormat | TagType.BlockOnNotPlaying, Desc = "Max combo of a judgment")] public static int MarginMaxCombo(string margin) => MaxRun(Current, Matches(Parse(margin)));
-    [Tag(TagType = TagType.ProcessFormat | TagType.BlockOnNotPlaying, Desc = "Current combo of judgments (a|b|...)")] public static int MarginCombos(string margins) => Tail(Current, Matches(ParseMany(margins)));
-    [Tag(TagType = TagType.ProcessFormat | TagType.BlockOnNotPlaying, Desc = "Max combo of judgments (a|b|...)")] public static int MarginMaxCombos(string margins) => MaxRun(Current, Matches(ParseMany(margins)));
+    [Tag(TagType = TagType.ProcessFormat | TagType.BlockOnNotPlaying, Desc = "Max combo")] public static int MaxCombo => GetRuns("*", IsPerfect).max;
+    [Tag(TagType = TagType.ProcessFormat | TagType.BlockOnNotPlaying, Desc = "Current combo of a judgment")] public static int MarginCombo(string margin) => GetRuns("c:" + margin, Matches(ParseCached(margin))).tail;
+    [Tag(TagType = TagType.ProcessFormat | TagType.BlockOnNotPlaying, Desc = "Max combo of a judgment")] public static int MarginMaxCombo(string margin) => GetRuns("c:" + margin, Matches(ParseCached(margin))).max;
+    [Tag(TagType = TagType.ProcessFormat | TagType.BlockOnNotPlaying, Desc = "Current combo of judgments (a|b|...)")] public static int MarginCombos(string margins) => GetRuns("m:" + margins, Matches(ParseManyCached(margins))).tail;
+    [Tag(TagType = TagType.ProcessFormat | TagType.BlockOnNotPlaying, Desc = "Max combo of judgments (a|b|...)")] public static int MarginMaxCombos(string margins) => GetRuns("m:" + margins, Matches(ParseManyCached(margins))).max;
 
     internal static bool IsMidspin(object margin) {
         return margin != null && margin.ToString() == "Midspin";
@@ -49,7 +49,57 @@ public static class Combo {
         return best;
     }
 
+    private sealed class RunCache {
+        public IList List;
+        public int Count;
+        public int Tail;
+        public int Max;
+    }
+
+    private static readonly Dictionary<string, RunCache> runCaches = new();
+
+    private static (int tail, int max) GetRuns(string key, Func<object, bool> matches) {
+        var list = Current;
+        if(runCaches.TryGetValue(key, out var cached)
+            && ReferenceEquals(cached.List, list)
+            && cached.Count == list.Count) {
+            return (cached.Tail, cached.Max);
+        }
+        int best = 0, current = 0;
+        foreach(object value in list) {
+            if(IsMidspin(value)) continue;
+            current = matches(value) ? current + 1 : 0;
+            if(current > best) best = current;
+        }
+        if(runCaches.Count > 256) runCaches.Clear();
+        runCaches[key] = new RunCache { List = list, Count = list.Count, Tail = current, Max = best };
+        return (current, best);
+    }
+
     private static Func<object, bool> Matches(HashSet<object> set) => set.Contains;
+
+    private static readonly Dictionary<string, HashSet<object>> parseCache = new(StringComparer.Ordinal);
+
+    private static HashSet<object> ParseCached(string margin) {
+        margin ??= string.Empty;
+        if(!parseCache.TryGetValue(margin, out var set)) {
+            if(parseCache.Count > 128) parseCache.Clear();
+            set = Parse(margin);
+            parseCache[margin] = set;
+        }
+        return set;
+    }
+
+    private static HashSet<object> ParseManyCached(string margins) {
+        margins ??= string.Empty;
+        string key = "m|" + margins;
+        if(!parseCache.TryGetValue(key, out var set)) {
+            if(parseCache.Count > 128) parseCache.Clear();
+            set = ParseMany(margins);
+            parseCache[key] = set;
+        }
+        return set;
+    }
 
     private static HashSet<object> Parse(string margin) {
         var set = new HashSet<object>();
