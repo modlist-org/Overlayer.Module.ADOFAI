@@ -1,3 +1,4 @@
+using Overlayer.Async;
 using Overlayer.Tag.Core;
 using System;
 using SkyHook;
@@ -39,16 +40,22 @@ public static class Key {
     }
 
     private static void OnKeyEvent(SkyHookEvent ev) {
+        // NOTE: SkyHook invokes this on its native hook thread, NOT the Unity
+        // main thread. Keep only lock-protected state here; the KPS feed
+        // touches Unity-only APIs (Time) and the tracker's queue, so it is
+        // marshalled to the main thread below.
+        bool pressed = false;
         lock(_lock) {
             if(ev.Type == EventType.KeyPressed) {
-                if(_held.Add(ev.Label)) {
-                    FeedKps();
-                }
+                pressed = _held.Add(ev.Label);
             } else if(ev.Type == EventType.KeyReleased) {
                 // SkyHook is the source of truth here. Unity's input state can
                 // diverge while multiple keys are held or game input is blocked.
                 _held.Remove(ev.Label);
             }
+        }
+        if(pressed) {
+            MainThread.Enqueue(FeedKps);
         }
     }
 
