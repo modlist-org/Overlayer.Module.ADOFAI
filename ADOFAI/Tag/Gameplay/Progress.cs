@@ -51,16 +51,24 @@ public static class Progress {
         }
     }
     [Tag(TagType = TagType.BlockOnNotPlaying, Desc = "Best progress (%)")] public static double BestProgressPercent => BestProgress * 100d;
-    [Tag(TagType = TagType.BlockOnNotPlaying, Desc = "Time-based progress (0-1)")] public static double ActualProgress {
+    [Tag(TagType = TagType.BlockOnNotPlaying, Desc = "Time-based progress (0-1)")] public static double ActualProgress
+        => TimeProgressAt(Controller == null ? null : GameAccess.CurrFloor.Get(Controller));
+    [Tag(TagType = TagType.BlockOnNotPlaying, Desc = "Time-based start progress (0-1)")] public static double StartActualProgress {
         get {
             var floors = Floors();
-            var floor = Controller == null ? null : GameAccess.CurrFloor.Get(Controller);
-            if(floors == null || floors.Count < 2 || floor == null) return 0;
-            double start = GameAccess.EntryTime.Get(floors[0]);
-            double end = GameAccess.EntryTime.Get(floors[floors.Count - 1]);
-            double now = GameAccess.EntryTime.Get(floor);
-            return end <= start ? 0 : Math.Max(0, Math.Min(1, (now - start) / (end - start)));
+            int idx = StartTile;
+            return floors == null || idx < 0 || idx >= floors.Count ? 0 : TimeProgressAt(floors[idx]);
         }
+    }
+    [Tag(TagType = TagType.BlockOnNotPlaying, Desc = "Time-based start progress (%)")] public static double StartActualProgressPercent => StartActualProgress * 100d;
+
+    private static double TimeProgressAt(object floor) {
+        var floors = Floors();
+        if(floors == null || floors.Count < 2 || floor == null) return 0;
+        double start = GameAccess.EntryTime.Get(floors[0]);
+        double end = GameAccess.EntryTime.Get(floors[floors.Count - 1]);
+        double now = GameAccess.EntryTime.Get(floor);
+        return end <= start ? 0 : Math.Max(0, Math.Min(1, (now - start) / (end - start)));
     }
     [Tag(TagType = TagType.BlockOnNotPlaying, Desc = "Time-based progress (%)")] public static double ActualProgressPercent => ActualProgress * 100d;
 

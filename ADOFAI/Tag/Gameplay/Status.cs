@@ -90,6 +90,26 @@ public static class Status {
     [NeedsPatch(typeof(Patch.SP_FileAttemptLoad), typeof(Patch.SP_FileAttemptPlay))]
     public static int FileTileAttempts(int tile = -1)
         => FileStoreState.Current.Data.GetTileAttempts(tile < 0 ? Progress.CurTile : tile);
+    [Tag(Desc = "Tile of the last fail (session)")]
+    [NeedsPatch(typeof(Patch.SP_FailHistoryLoad), typeof(Patch.SP_FailHistoryRecord))]
+    public static int LastFailTile => Patch.FailHistoryState.LastTile;
+    [Tag(Desc = "Progress of the last fail (0-1, session)")]
+    [NeedsPatch(typeof(Patch.SP_FailHistoryLoad), typeof(Patch.SP_FailHistoryRecord))]
+    public static double LastFailProgress => Patch.FailHistoryState.LastProgress;
+    [Tag(Desc = "Progress of the last fail (%, session)")]
+    [NeedsPatch(typeof(Patch.SP_FailHistoryLoad), typeof(Patch.SP_FailHistoryRecord))]
+    public static double LastFailProgressPercent => Patch.FailHistoryState.LastProgress * 100d;
+    [Tag(Desc = "Total fails (session)")]
+    [NeedsPatch(typeof(Patch.SP_FailHistoryLoad), typeof(Patch.SP_FailHistoryRecord))]
+    public static int SessionFails => Patch.FailHistoryState.Count;
+    [Tag(Desc = "Fails on a tile (session), current tile if -1")]
+    [NeedsPatch(typeof(Patch.SP_FailHistoryLoad), typeof(Patch.SP_FailHistoryRecord))]
+    public static int FailCountAtTile(int tile = -1)
+        => Patch.FailHistoryState.GetTileFails(tile < 0 ? Progress.CurTile : tile);
+    [Tag(Desc = "[File] Runs started from tile 0 that reached a tile, current tile if -1")]
+    [NeedsPatch(typeof(Patch.SP_FileAttemptLoad), typeof(Patch.SP_FileAttemptPlay), typeof(Patch.SP_FileRunReach), typeof(Patch.SP_FileRunFail), typeof(Patch.SP_FileRunWin))]
+    public static int FileRunToHere(int tile = -1)
+        => FileStoreState.Current.Data.GetReachCount(tile < 0 ? Progress.CurTile : tile);
     [Tag(Desc = "New map (no record)")]
     [NeedsPatch(typeof(Patch.SP_FileAttemptLoad), typeof(Patch.SP_FileAttemptPlay))]
     public static bool IsNewMap => !FileStoreState.Current.HasRecord && !FileStore.HasGameRecord();

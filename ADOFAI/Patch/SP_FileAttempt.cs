@@ -1,5 +1,6 @@
 using HarmonyLib;
 using Overlayer.Module.ADOFAI.IO.File;
+using Overlayer.Module.ADOFAI.Tag.Gameplay;
 using Overlayer.Patch.Safe;
 using System.Reflection;
 
@@ -28,6 +29,69 @@ public class SP_FileAttemptPlay() : SafeConditionalPatch(nameof(SP_FileAttemptPl
 
     private static void PostfixImpl(int seqID) {
         FileStoreState.Current.Data.Increase(seqID);
+        FileRunState.Start(seqID);
         FileStoreState.Current.Save();
     }
+}
+
+public static class FileRunState {
+    private static bool active;
+    private static int lastTile;
+
+    public static void Start(int seqID) {
+        active = seqID == 0;
+        lastTile = 0;
+        if(active) FileStoreState.Current.Data.Reach(0);
+    }
+
+    // Counts every tile passed since the last call, so skipped hits (multi-tile frames) still register.
+    public static void CatchUp() {
+        if(!active) return;
+        int cur = Progress.CurTile;
+        for(int t = lastTile + 1; t <= cur; t++) FileStoreState.Current.Data.Reach(t);
+        if(cur > lastTile) lastTile = cur;
+    }
+
+    public static void End() {
+        if(!active) return;
+        CatchUp();
+        active = false;
+        FileStoreState.Current.Save();
+    }
+}
+
+public class SP_FileRunReach() : SafeConditionalPatch(nameof(SP_FileRunReach)) {
+    protected override bool ShouldApply() => Core.Config.FileFeature;
+
+    protected override MethodBase GetTargetMethod()
+        => SafePatch.GetMethodSafe("scrPlanet", "SwitchChosen");
+
+    protected override HarmonyMethod Postfix() => new HarmonyMethod(typeof(SP_FileRunReach)
+        .GetMethod(nameof(PostfixImpl), BindingFlags.Static | BindingFlags.NonPublic));
+
+    private static void PostfixImpl() => FileRunState.CatchUp();
+}
+
+public class SP_FileRunFail() : SafeConditionalPatch(nameof(SP_FileRunFail)) {
+    protected override bool ShouldApply() => Core.Config.FileFeature;
+
+    protected override MethodBase GetTargetMethod()
+        => SafePatch.GetMethodSafe("scrController", "FailAction");
+
+    protected override HarmonyMethod Prefix() => new HarmonyMethod(typeof(SP_FileRunFail)
+        .GetMethod(nameof(PrefixImpl), BindingFlags.Static | BindingFlags.NonPublic));
+
+    private static void PrefixImpl() => FileRunState.End();
+}
+
+public class SP_FileRunWin() : SafeConditionalPatch(nameof(SP_FileRunWin)) {
+    protected override bool ShouldApply() => Core.Config.FileFeature;
+
+    protected override MethodBase GetTargetMethod()
+        => SafePatch.GetMethodSafe("scrController", "Won_Enter");
+
+    protected override HarmonyMethod Postfix() => new HarmonyMethod(typeof(SP_FileRunWin)
+        .GetMethod(nameof(PostfixImpl), BindingFlags.Static | BindingFlags.NonPublic));
+
+    private static void PostfixImpl() => FileRunState.End();
 }

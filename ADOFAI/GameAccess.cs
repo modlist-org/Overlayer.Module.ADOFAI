@@ -42,6 +42,7 @@ public static class GameAccess {
 
     // Conductor / song
     public static readonly SafeMember<double> ConductorBpm = new(new("scrConductor", "bpm"));
+    public static readonly SafeMember<double> SongPosition = new(new("scrConductor", "songposition_minusi"));
     public static readonly SafeMember<object> Song = new(new("scrConductor", "song"));
     public static readonly SafeMember<bool> IsGameWorldFlag = new(new("scrConductor", "isGameWorld"));
     public static readonly SafeMember<double> SongTime = new(new("UnityEngine.AudioSource", "time"));

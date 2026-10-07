@@ -27,6 +27,11 @@ public static class Time {
     [Tag(Desc = "Song length (milliseconds)")] public static int TotalMilliSecond => SongLength.Milliseconds;
 
     [Tag(Desc = "Map length (seconds)")] public static double MapLength => MapSpan.TotalSeconds;
+    [Tag(Desc = "Map length (hours)")] public static int MapTotalHour => MapSpan.Hours;
+    [Tag(Desc = "Map length (minutes)")] public static int MapTotalMinute => MapSpan.Minutes;
+    [Tag(Desc = "Map length (seconds)")] public static int MapTotalSecond => MapSpan.Seconds;
+    [Tag(Desc = "Map length (milliseconds)")] public static int MapTotalMilliSecond => MapSpan.Milliseconds;
+    [Tag(Desc = "Map time (hours)")] public static int MapHour => MapElapsed.Hours;
     [Tag(Desc = "Map time (minutes)")] public static int MapMinute => MapElapsed.Minutes;
     [Tag(Desc = "Map time (seconds)")] public static int MapSecond => MapElapsed.Seconds;
     [Tag(Desc = "Map time (milliseconds)")] public static int MapMilliSecond => MapElapsed.Milliseconds;
@@ -60,10 +65,9 @@ public static class Time {
     private static TimeSpan MapElapsed {
         get {
             var floors = Floors();
-            var controller = GameAccess.Controller.Get(null);
-            var floor = controller == null ? null : GameAccess.CurrFloor.Get(controller);
-            if(floors == null || floors.Count == 0 || floor == null) return TimeSpan.Zero;
-            double elapsed = GameAccess.EntryTime.Get(floor) - GameAccess.EntryTime.Get(floors[0]);
+            var conductor = GameAccess.Conductor.Get(null);
+            if(floors == null || floors.Count == 0 || conductor == null) return TimeSpan.Zero;
+            double elapsed = GameAccess.SongPosition.Get(conductor) - GameAccess.EntryTime.Get(floors[0]);
             return TimeSpan.FromSeconds(Math.Max(0, elapsed));
         }
     }
