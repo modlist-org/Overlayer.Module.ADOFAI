@@ -71,6 +71,18 @@ public static class Progress {
         return end <= start ? 0 : Math.Max(0, Math.Min(1, (now - start) / (end - start)));
     }
     [Tag(TagType = TagType.BlockOnNotPlaying, Desc = "Time-based progress (%)")] public static double ActualProgressPercent => ActualProgress * 100d;
+    [Tag(TagType = TagType.BlockOnNotPlaying, Desc = "Time-based progress, updated every frame (0-1)")] public static double SmoothActualProgress {
+        get {
+            var floors = Floors();
+            var conductor = GameAccess.Conductor.Get(null);
+            if(floors == null || floors.Count < 2 || conductor == null) return 0;
+            double start = GameAccess.EntryTime.Get(floors[0]);
+            double end = GameAccess.EntryTime.Get(floors[floors.Count - 1]);
+            double now = GameAccess.SongPosition.Get(conductor);
+            return end <= start ? 0 : Math.Max(0, Math.Min(1, (now - start) / (end - start)));
+        }
+    }
+    [Tag(TagType = TagType.BlockOnNotPlaying, Desc = "Time-based progress, updated every frame (%)")] public static double SmoothActualProgressPercent => SmoothActualProgress * 100d;
 
     [Tag(TagType = TagType.BlockOnNotPlaying, Desc = "Checkpoints used")] public static int CheckpointsUsed => GameAccess.CheckpointsUsedCount.Get(Controller, 0);
     [Tag(TagType = TagType.BlockOnNotPlaying, Desc = "Current checkpoint")] public static int CurCheckpoint {
