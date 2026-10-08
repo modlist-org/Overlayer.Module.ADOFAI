@@ -40,7 +40,7 @@ public class Core : OverlayerModule {
     private void OnLanguageChanged(string lang)
         => Tr.Language = lang;
 
-    private const string SupportedGameVersionPrefix = "1.4.1";
+    private const string SupportedGameVersionPrefix = "1.4.2";
 
     private static void CheckGameVersion() {
         try {
