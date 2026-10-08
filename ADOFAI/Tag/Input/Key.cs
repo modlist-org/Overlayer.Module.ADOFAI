@@ -9,6 +9,13 @@ namespace Overlayer.Module.ADOFAI.Tag.Input;
 
 public static class Key {
     private static readonly HashSet<KeyLabel> _held = new();
+    // Raw codes of events SkyHook couldn't label. On Windows with a Korean
+    // layout, right Alt/Ctrl arrive as VK_HANGUL/VK_HANJA, not VK_RMENU/VK_RCONTROL.
+    private static readonly HashSet<ushort> _heldUnknown = new();
+    private static readonly Dictionary<KeyLabel, ushort[]> _unknownAliases = new() {
+        [KeyLabel.RAlt] = new ushort[] { 0x15, 0xA5 },     // VK_HANGUL, VK_RMENU
+        [KeyLabel.RControl] = new ushort[] { 0x19, 0xA3 }, // VK_HANJA, VK_RCONTROL
+    };
     private static readonly Dictionary<string, KeyLabel> _labels = BuildLabelCache();
     private static readonly object _lock = new();
     private static UnityAction<SkyHookEvent> _listener;
@@ -46,12 +53,14 @@ public static class Key {
         // marshalled to the main thread below.
         bool pressed = false;
         lock(_lock) {
+            bool unknown = ev.Label == KeyLabel.Unknown;
             if(ev.Type == EventType.KeyPressed) {
-                pressed = _held.Add(ev.Label);
+                pressed = unknown ? _heldUnknown.Add(ev.Key) : _held.Add(ev.Label);
             } else if(ev.Type == EventType.KeyReleased) {
                 // SkyHook is the source of truth here. Unity's input state can
                 // diverge while multiple keys are held or game input is blocked.
-                _held.Remove(ev.Label);
+                if(unknown) _heldUnknown.Remove(ev.Key);
+                else _held.Remove(ev.Label);
             }
         }
         if(pressed) {
@@ -82,6 +91,7 @@ public static class Key {
             } catch { }
             _listener = null;
             _held.Clear();
+            _heldUnknown.Clear();
             _subscribed = false;
         }
     }
@@ -92,7 +102,12 @@ public static class Key {
         if(string.IsNullOrWhiteSpace(key)) return false;
         if(!_labels.TryGetValue(key.Trim(), out KeyLabel label)) return false;
         lock(_lock) {
-            return _held.Contains(label);
+            if(_held.Contains(label)) return true;
+            if(_heldUnknown.Count == 0 || !_unknownAliases.TryGetValue(label, out ushort[] raws)) return false;
+            foreach(ushort raw in raws) {
+                if(_heldUnknown.Contains(raw)) return true;
+            }
+            return false;
         }
     }
 }
