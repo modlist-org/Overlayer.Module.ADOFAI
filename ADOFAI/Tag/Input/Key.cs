@@ -3,6 +3,7 @@ using Overlayer.Tag.Core;
 using System;
 using SkyHook;
 using System.Collections.Generic;
+using UnityEngine;
 using UnityEngine.Events;
 
 namespace Overlayer.Module.ADOFAI.Tag.Input;
@@ -20,6 +21,10 @@ public static class Key {
     private static readonly object _lock = new();
     private static UnityAction<SkyHookEvent> _listener;
     private static bool _subscribed;
+    private static readonly Dictionary<KeyLabel, long> _suspectRelease = new();
+    private static readonly Dictionary<ushort, long> _suspectUnknownRelease = new();
+    private const long ReleaseConfirmTicks = 100 * 10000L;
+    private static bool _lastFocus = true;
 
     private static Dictionary<string, KeyLabel> BuildLabelCache() {
         var cache = new Dictionary<string, KeyLabel>(StringComparer.OrdinalIgnoreCase);
@@ -54,13 +59,23 @@ public static class Key {
         bool pressed = false;
         lock(_lock) {
             bool unknown = ev.Label == KeyLabel.Unknown;
-            if(ev.Type == EventType.KeyPressed) {
-                pressed = unknown ? _heldUnknown.Add(ev.Key) : _held.Add(ev.Label);
-            } else if(ev.Type == EventType.KeyReleased) {
-                // SkyHook is the source of truth here. Unity's input state can
-                // diverge while multiple keys are held or game input is blocked.
-                if(unknown) _heldUnknown.Remove(ev.Key);
-                else _held.Remove(ev.Label);
+            if(ev.Type == SkyHook.EventType.KeyPressed) {
+                if(unknown) {
+                    _suspectUnknownRelease.Remove(ev.Key);
+                    pressed = _heldUnknown.Add(ev.Key);
+                } else {
+                    _suspectRelease.Remove(ev.Label);
+                    pressed = _held.Add(ev.Label);
+                }
+            } else if(ev.Type == SkyHook.EventType.KeyReleased) {
+                long now = DateTime.UtcNow.Ticks;
+                if(unknown) {
+                    if(_heldUnknown.Contains(ev.Key)) {
+                        _suspectUnknownRelease[ev.Key] = now;
+                    }
+                } else if(_held.Contains(ev.Label)) {
+                    _suspectRelease[ev.Label] = now;
+                }
             }
         }
         if(pressed) {
@@ -92,6 +107,9 @@ public static class Key {
             _listener = null;
             _held.Clear();
             _heldUnknown.Clear();
+            _suspectRelease.Clear();
+            _suspectUnknownRelease.Clear();
+            _lastFocus = true;
             _subscribed = false;
         }
     }
@@ -101,13 +119,59 @@ public static class Key {
         EnsureSubscribed();
         if(string.IsNullOrWhiteSpace(key)) return false;
         if(!_labels.TryGetValue(key.Trim(), out KeyLabel label)) return false;
+        long now = DateTime.UtcNow.Ticks;
         lock(_lock) {
+            SyncFocusLocked();
+            SweepExpiredLocked(now);
             if(_held.Contains(label)) return true;
             if(_heldUnknown.Count == 0 || !_unknownAliases.TryGetValue(label, out ushort[] raws)) return false;
             foreach(ushort raw in raws) {
                 if(_heldUnknown.Contains(raw)) return true;
             }
             return false;
+        }
+    }
+
+    private static void SyncFocusLocked() {
+        bool focused = true;
+        try {
+            focused = Application.isFocused;
+        } catch {
+            return;
+        }
+        if(focused && !_lastFocus) {
+            _held.Clear();
+            _heldUnknown.Clear();
+            _suspectRelease.Clear();
+            _suspectUnknownRelease.Clear();
+        }
+        _lastFocus = focused;
+    }
+
+    private static void SweepExpiredLocked(long now) {
+        if(_suspectRelease.Count > 0) {
+            var done = new List<KeyLabel>();
+            foreach(var pair in _suspectRelease) {
+                if(now - pair.Value >= ReleaseConfirmTicks) {
+                    done.Add(pair.Key);
+                }
+            }
+            foreach(var label in done) {
+                _suspectRelease.Remove(label);
+                _held.Remove(label);
+            }
+        }
+        if(_suspectUnknownRelease.Count > 0) {
+            var done = new List<ushort>();
+            foreach(var pair in _suspectUnknownRelease) {
+                if(now - pair.Value >= ReleaseConfirmTicks) {
+                    done.Add(pair.Key);
+                }
+            }
+            foreach(var raw in done) {
+                _suspectUnknownRelease.Remove(raw);
+                _heldUnknown.Remove(raw);
+            }
         }
     }
 }
