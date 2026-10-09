@@ -5,6 +5,9 @@ using System.Collections.Generic;
 namespace Overlayer.Module.ADOFAI.IO.File;
 
 public sealed class FileData : ISettingsFile {
+    public const string Format = "o5af";
+    public const int FormatVersion = 1;
+
     public int Attempts { get; set; }
     public Dictionary<int, int> TileAttempts { get; set; } = [];
     // Runs started from tile 0 that reached each tile.
@@ -44,6 +47,8 @@ public sealed class FileData : ISettingsFile {
             [nameof(TileAttempts)] = JToken.FromObject(TileAttempts),
             [nameof(ReachCounts)] = JToken.FromObject(ReachCounts),
             [nameof(Extra)] = Extra,
+            ["format"] = Format,
+            ["formatVersion"] = FormatVersion,
         };
     }
 

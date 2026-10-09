@@ -107,7 +107,7 @@ public static class Status {
     public static int FailCountAtTile(int tile = -1)
         => Patch.FailHistoryState.GetTileFails(tile < 0 ? Progress.CurTile : tile);
     [Tag(Desc = "[File] Runs started from tile 0 that reached a tile, current tile if -1")]
-    [NeedsPatch(typeof(Patch.SP_FileAttemptLoad), typeof(Patch.SP_FileAttemptPlay), typeof(Patch.SP_FileRunReach), typeof(Patch.SP_FileRunFail), typeof(Patch.SP_FileRunWin))]
+    [NeedsPatch(typeof(Patch.SP_FileAttemptLoad), typeof(Patch.SP_FileAttemptPlay), typeof(Patch.SP_FileRunReach), typeof(Patch.SP_FileRunFail), typeof(Patch.SP_FileRunFail2), typeof(Patch.SP_FileRunWin))]
     public static int FileRunToHere(int tile = -1)
         => FileStoreState.Current.Data.GetReachCount(tile < 0 ? Progress.CurTile : tile);
     [Tag(Desc = "New map (no record)")]

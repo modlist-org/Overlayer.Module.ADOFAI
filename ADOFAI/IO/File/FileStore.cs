@@ -4,7 +4,8 @@ using System.IO;
 namespace Overlayer.Module.ADOFAI.IO.File;
 
 public sealed class FileStore {
-    private const string FileName = "Overlayer_Attempts.json";
+    private const string FileName = "Overlayer_File.json";
+    private const string LegacyFileName = "Overlayer_Attempts.json";
 
     public FileData Data { get; private set; } = new();
     public bool HasRecord { get; private set; }
@@ -20,6 +21,20 @@ public sealed class FileStore {
             } catch {
                 Data = new();
                 HasRecord = false;
+            }
+        }
+        if(!HasRecord) {
+            string? legacy = GetLegacyPath();
+            if(legacy != null && System.IO.File.Exists(legacy)) {
+                try {
+                    Data.Deserialize(Newtonsoft.Json.Linq.JToken.Parse(System.IO.File.ReadAllText(legacy)));
+                    HasRecord = true;
+                    Save();
+                    System.IO.File.Delete(legacy);
+                } catch {
+                    Data = new();
+                    HasRecord = false;
+                }
             }
         }
         if(!HasRecord && HasGameRecord()) {
@@ -64,6 +79,14 @@ public sealed class FileStore {
         if(string.IsNullOrEmpty(level)) return null;
         string? dir = System.IO.Path.GetDirectoryName(level);
         return string.IsNullOrEmpty(dir) ? null : System.IO.Path.Combine(dir, FileName);
+    }
+
+    private static string? GetLegacyPath() {
+        var scnGame = GameAccess.ScnGame.Get(null);
+        string level = scnGame == null ? null : GameAccess.LevelPath.Get(scnGame);
+        if(string.IsNullOrEmpty(level)) return null;
+        string? dir = System.IO.Path.GetDirectoryName(level);
+        return string.IsNullOrEmpty(dir) ? null : System.IO.Path.Combine(dir, LegacyFileName);
     }
 }
 

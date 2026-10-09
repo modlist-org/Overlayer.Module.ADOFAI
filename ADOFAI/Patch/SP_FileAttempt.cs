@@ -37,10 +37,12 @@ public class SP_FileAttemptPlay() : SafeConditionalPatch(nameof(SP_FileAttemptPl
 public static class FileRunState {
     private static bool active;
     private static int lastTile;
+    private static int unsavedTiles;
 
     public static void Start(int seqID) {
         active = seqID == 0;
         lastTile = 0;
+        unsavedTiles = 0;
         if(active) FileStoreState.Current.Data.Reach(0);
     }
 
@@ -49,13 +51,22 @@ public static class FileRunState {
         if(!active) return;
         int cur = Progress.CurTile;
         for(int t = lastTile + 1; t <= cur; t++) FileStoreState.Current.Data.Reach(t);
-        if(cur > lastTile) lastTile = cur;
+        if(cur > lastTile) {
+            unsavedTiles += cur - lastTile;
+            lastTile = cur;
+        }
+        // Quitting to menu skips FailAction/Won_Enter, so persist periodically.
+        if(unsavedTiles >= 32) {
+            unsavedTiles = 0;
+            FileStoreState.Current.Save();
+        }
     }
 
     public static void End() {
         if(!active) return;
         CatchUp();
         active = false;
+        unsavedTiles = 0;
         FileStoreState.Current.Save();
     }
 }
@@ -82,6 +93,18 @@ public class SP_FileRunFail() : SafeConditionalPatch(nameof(SP_FileRunFail)) {
         .GetMethod(nameof(PrefixImpl), BindingFlags.Static | BindingFlags.NonPublic));
 
     private static void PrefixImpl() => FileRunState.End();
+}
+
+public class SP_FileRunFail2() : SafeConditionalPatch(nameof(SP_FileRunFail2)) {
+    protected override bool ShouldApply() => Core.Config.FileFeature;
+
+    protected override MethodBase GetTargetMethod()
+        => SafePatch.GetMethodSafe("scrController", "Fail2Action");
+
+    protected override HarmonyMethod Postfix() => new HarmonyMethod(typeof(SP_FileRunFail2)
+        .GetMethod(nameof(PostfixImpl), BindingFlags.Static | BindingFlags.NonPublic));
+
+    private static void PostfixImpl() => FileRunState.End();
 }
 
 public class SP_FileRunWin() : SafeConditionalPatch(nameof(SP_FileRunWin)) {

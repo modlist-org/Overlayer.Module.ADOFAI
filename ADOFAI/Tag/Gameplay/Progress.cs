@@ -71,6 +71,7 @@ public static class Progress {
         return end <= start ? 0 : Math.Max(0, Math.Min(1, (now - start) / (end - start)));
     }
     [Tag(TagType = TagType.BlockOnNotPlaying, Desc = "Time-based progress (%)")] public static double ActualProgressPercent => ActualProgress * 100d;
+
     [Tag(TagType = TagType.BlockOnNotPlaying, Desc = "Time-based progress, updated every frame (0-1)")] public static double SmoothActualProgress {
         get {
             var floors = Floors();
