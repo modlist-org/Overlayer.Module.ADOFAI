@@ -78,7 +78,7 @@ public static class Progress {
             if(floors == null || floors.Count < 2 || conductor == null) return 0;
             double start = GameAccess.EntryTime.Get(floors[0]);
             double end = GameAccess.EntryTime.Get(floors[floors.Count - 1]);
-            double now = GameAccess.SongPosition.Get(conductor);
+            double now = Status.GameplayState.DeathSongPosition ?? GameAccess.SongPosition.Get(conductor);
             return end <= start ? 0 : Math.Max(0, Math.Min(1, (now - start) / (end - start)));
         }
     }

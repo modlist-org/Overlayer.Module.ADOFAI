@@ -8,6 +8,7 @@ public sealed class ADOFAISettings : ISettingsFile {
     public bool LinuxTextInputFix = true;
     public bool HideTitle = false;
     public bool BlockInputWhenOpened = true;
+    public bool AllowRightAlt = true;
     public bool FileFeature = false;
     public bool LazyPatches = true;
     public bool LazyAccess = true;
@@ -18,6 +19,7 @@ public sealed class ADOFAISettings : ISettingsFile {
             [nameof(LinuxTextInputFix)] = LinuxTextInputFix,
             [nameof(HideTitle)] = HideTitle,
             [nameof(BlockInputWhenOpened)] = BlockInputWhenOpened,
+            [nameof(AllowRightAlt)] = AllowRightAlt,
             [nameof(FileFeature)] = FileFeature,
             [nameof(LazyPatches)] = LazyPatches,
             [nameof(LazyAccess)] = LazyAccess,
@@ -29,6 +31,7 @@ public sealed class ADOFAISettings : ISettingsFile {
         LinuxTextInputFix = Read(token, nameof(LinuxTextInputFix), LinuxTextInputFix);
         HideTitle = Read(token, nameof(HideTitle), HideTitle);
         BlockInputWhenOpened = Read(token, nameof(BlockInputWhenOpened), BlockInputWhenOpened);
+        AllowRightAlt = Read(token, nameof(AllowRightAlt), AllowRightAlt);
         FileFeature = Read(token, nameof(FileFeature), FileFeature);
         LazyPatches = Read(token, nameof(LazyPatches), LazyPatches);
         LazyAccess = Read(token, nameof(LazyAccess), LazyAccess);

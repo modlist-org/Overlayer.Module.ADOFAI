@@ -142,6 +142,7 @@ public static class Status {
         internal static double BestProgress;
         internal static readonly List<double> Timings = new();
         internal static double TimingSum;
+        internal static double? DeathSongPosition;
 
         internal static void RecordTiming(double value) {
             Timing = value;
@@ -156,6 +157,7 @@ public static class Status {
             BestProgress = 0;
             TimingSum = 0;
             Timings.Clear();
+            DeathSongPosition = null;
         }
     }
 }

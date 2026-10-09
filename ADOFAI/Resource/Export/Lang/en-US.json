@@ -10,6 +10,8 @@
     "ADV_DESC_HIDE_TITLE": "Controls the unused static flag 'GCS.d_dontShowTitles' in game memory.\n\nADOFAI's codebase contains logic that reads 'd_dontShowTitles' to hide level titles during gameplay,\nbut the game never assigns a value to this field anywhere.\n\nThis option exposes control over that field directly,\nenabling native title hiding without needing additional patches",
     "ADV_DESC_LINUX_TEXT_INPUT_FIX": "Prevents Linux Unity builds from double-processing input caused\nby OS text events and physical key events firing simultaneously.\n\nThe Process method tracks frame counts and pending states to\npass only the first arriving event of a pair while dropping duplicates.\n\nIt also resolves corrupted Shift and CapsLock inputs\nby analyzing key codes and modifier states via bitwise operations to recalculate the exact ASCII characters",
     "ADV_DESC_SHOW_AUTOPLAY_JUDGMENT": "Patches scrPlayer.Hit method using Transpiler.\n\nOriginal scrPlayer.Hit checks 'this.auto' field\nto force hit error meter values to 0.0f (Perfect)\nduring AutoPlay.\nThe Transpiler scans IL instructions for Ldarg_0\nfollowed by Ldfld 'auto' or Call 'get_auto',\nand replaces them with Ldc_I4_0 and Nop.\n\nThis forces the auto check to evaluate as false,\nallowing the Error Meter to process actual angle diffs\nand margin scales",
+    "ALLOW_RIGHT_ALT": "Allow Right Alt",
+    "DESC_ALLOW_RIGHT_ALT": "Lets Right Alt count as a hit key (the game ignores it by default)",
     "BLOCK_INPUT_WHEN_OPENED": "Block Input When Opened",
     "DESC_BLOCK_INPUT_WHEN_OPENED": "Blocks game inputs while the Overlayer UI is opened",
     "DESC_HIDE_TITLE": "Hides in-game level titles using GCS setting",

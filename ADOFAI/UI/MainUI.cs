@@ -136,7 +136,25 @@ public static class MainUI {
         objects[blockInputToggle.Id] = blockInputToggle;
         blockInputToggle.Rect.AddToolTip(O5KitAdapters.Ctx, () => TooltipText("DESC_BLOCK_INPUT_WHEN_OPENED", "Blocks game inputs while the Overlayer UI is opened", "ADV_DESC_BLOCK_INPUT_WHEN_OPENED", "Hooks into ADOFAI's input architecture across 4 distinct layers:\n\n1. Async Input: Patches scrPlayer.ValidInputWasTriggered and clears key masks in AsyncInputManager.\n2. Legacy Input: Patches RDInputType_Keyboard.CheckKeyState to block editing and mouse input.\n3. Input Method: Intercepts OptionsPanelsCLS.CheckInputs to suppress menu input events.\n4. Direct Input: Uses Transpiler on level select Update methods to redirect UnityEngine.Input calls to custom wrappers.\n\nAlso creates a full-screen Raycast target (EmptyGraphic) behind the UI to block UI-level interactions"));
 
-        O5Toggle showAutoJudgmentToggle = O5Factory.Toggle(O5KitAdapters.Ctx,
+        O5Toggle allowRightAltToggle = O5Factory.Toggle(O5KitAdapters.Ctx,
+            O5Factory.Row(O5KitAdapters.Ctx, content.transform),
+            defSet.AllowRightAlt,
+            Core.Config.AllowRightAlt,
+            toggle => {
+                Core.Config.AllowRightAlt = toggle;
+                Core.ConfigFile.RequestSave();
+
+                ApplyState(SafePatchController.Get<SP_AllowRightAlt>(), toggle);
+            },
+            "Allow Right Alt",
+            "allow_right_alt"
+        );
+        allowRightAltToggle.EnabledWhen = () => MainCore.IsModEnabled;
+        allowRightAltToggle.Label.gameObject.AddComponent<TextLocalization>().Init("ALLOW_RIGHT_ALT", "Allow Right Alt", Core.Tr);
+        objects[allowRightAltToggle.Id] = allowRightAltToggle;
+        allowRightAltToggle.Rect.AddToolTip(O5KitAdapters.Ctx, () => Core.Tr.Get("DESC_ALLOW_RIGHT_ALT", "Lets Right Alt count as a hit key (the game ignores it by default)"));
+
+        O5Toggle showAutoJudgmentToggle =O5Factory.Toggle(O5KitAdapters.Ctx,
             O5Factory.Row(O5KitAdapters.Ctx, content.transform),
             defSet.ShowAutoplayJudgment,
             Core.Config.ShowAutoplayJudgment,

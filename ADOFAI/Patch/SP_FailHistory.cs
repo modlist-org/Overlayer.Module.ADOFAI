@@ -51,5 +51,9 @@ public class SP_FailHistoryRecord() : SafeConditionalPatch(nameof(SP_FailHistory
     protected override HarmonyMethod Prefix() => new HarmonyMethod(typeof(SP_FailHistoryRecord)
         .GetMethod(nameof(PrefixImpl), BindingFlags.Static | BindingFlags.NonPublic));
 
-    private static void PrefixImpl() => FailHistoryState.Record(Progress.CurTile, Progress.TileProgress);
+    private static void PrefixImpl() {
+        FailHistoryState.Record(Progress.CurTile, Progress.TileProgress);
+        var conductor = GameAccess.Conductor.Get(null);
+        if(conductor != null) Status.GameplayState.DeathSongPosition ??= GameAccess.SongPosition.Get(conductor);
+    }
 }
