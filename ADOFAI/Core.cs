@@ -170,6 +170,13 @@ public class Core : OverlayerModule {
         foreach(var patch in SafePatchController.Get<SP_FileAttemptPlay>()) patch.Apply();
         ApplyUiVisibility();
 
+        Overlayer.Package.PresetStore.Register(new Overlayer.Package.PackagePreset {
+            Id = "module:ADOFAI:Moon",
+            Name = "Moon",
+            Module = Info.Name,
+            ReadBytes = ReadMoonPreset,
+        });
+
         try { Tag.Input.Key.EnsureFeed(); } catch { }
 
         MainCore.Cam.CustomCameraProvider = () => {
@@ -184,6 +191,8 @@ public class Core : OverlayerModule {
     }
 
     public override void OnDispose() {
+        Overlayer.Package.PresetStore.UnregisterByModule(Info.Name);
+
         GameAccess.DontShowTitles.TrySet(null, false);
         UIVisibility.RestoreAll();
 
@@ -271,6 +280,15 @@ public class Core : OverlayerModule {
                 try { Overlayer.Patch.Safe.SafePatchController.Remove(patch); } catch { break; }
             }
         }
+    }
+
+    private static byte[] ReadMoonPreset() {
+        using var stream = Assembly.GetManifestResourceStream(
+            "Overlayer.Module.ADOFAI.Resource.Embedded.Presets.Moon.o5cp")
+            ?? throw new InvalidOperationException("Moon preset missing from module resources.");
+        using var buffer = new MemoryStream();
+        stream.CopyTo(buffer);
+        return buffer.ToArray();
     }
 
     public override string Name => Info.Name;
