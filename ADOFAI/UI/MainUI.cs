@@ -10,6 +10,7 @@ using O5Kit.Behaviour;
 using O5Kit.Control;
 using O5Kit.Core;
 using O5Kit.Factory;
+using System;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
@@ -172,8 +173,16 @@ public static class MainUI {
         objects[showAutoJudgmentToggle.Id] = showAutoJudgmentToggle;
         showAutoJudgmentToggle.Rect.AddToolTip(O5KitAdapters.Ctx, () => TooltipText("DESC_SHOW_AUTOPLAY_JUDGMENT", "Applies a patch to show the true judgment in AutoPlay on the Hit Error Meter", "ADV_DESC_SHOW_AUTOPLAY_JUDGMENT", "Patches scrController.UpdateHitErrorMeter method using Transpiler.\n\nOriginal UpdateHitErrorMeter checks 'RDC.auto'\nto force hit error meter values to 0.0f (Perfect)\nduring AutoPlay.\nThe Transpiler scans IL instructions for Call 'RDC.get_auto',\nand replaces it with Ldc_I4_0.\n\nThis forces the auto check to evaluate as false,\nallowing the Error Meter to process actual angle diffs\nand margin scales"));
 
+        var (_, uiOptions) = O5Factory.Card(O5KitAdapters.Ctx, content.transform,
+            Core.Tr.Get("UI_OPTIONS", "UI"), true, null, null,
+            showDeleteButton: false, showActiveToggle: false);
+
+        AddUiHideToggle(uiOptions, defSet.HideAll, Core.Config.HideAll,
+            value => Core.Config.HideAll = value, "HIDE_ALL", "Hide All", "hide_all",
+            "Hides the entire game HUD and editor UI. Overlayer UI remains visible.");
+
         O5Toggle hideTitleToggle = O5Factory.Toggle(O5KitAdapters.Ctx,
-            O5Factory.Row(O5KitAdapters.Ctx, content.transform),
+            O5Factory.Row(O5KitAdapters.Ctx, uiOptions),
             defSet.HideTitle,
             Core.Config.HideTitle,
             toggle => {
@@ -182,12 +191,24 @@ public static class MainUI {
                 GameAccess.DontShowTitles.TrySet(null, toggle);
             },
             "Hide Title",
-            "hide_title"
-        );
+            "hide_title");
         hideTitleToggle.EnabledWhen = () => MainCore.IsModEnabled;
         hideTitleToggle.Label.gameObject.AddComponent<TextLocalization>().Init("HIDE_TITLE", "Hide Title", Core.Tr);
         objects[hideTitleToggle.Id] = hideTitleToggle;
         hideTitleToggle.Rect.AddToolTip(O5KitAdapters.Ctx, () => TooltipText("DESC_HIDE_TITLE", "Hides in-game level titles using GCS setting", "ADV_DESC_HIDE_TITLE", "Controls the unused static flag 'GCS.d_dontShowTitles' in game memory.\n\nADOFAI's codebase contains logic that reads 'd_dontShowTitles' to hide level titles during gameplay,\nbut the game never assigns a value to this field anywhere.\n\nThis option exposes control over that field directly,\nenabling native title hiding without needing additional patches"));
+
+        AddUiHideToggle(uiOptions, defSet.HideAutoplay, Core.Config.HideAutoplay,
+            value => Core.Config.HideAutoplay = value, "HIDE_AUTOPLAY_STATUS", "Hide Autoplay Status", "hide_autoplay_status",
+            "Hides only ADOFAI's small Autoplay status text. Other HUD and editor UI remain visible.");
+        AddUiHideToggle(uiOptions, defSet.HideBuildText, Core.Config.HideBuildText,
+            value => Core.Config.HideBuildText = value, "HIDE_BUILD_TEXT", "Hide Build Text", "hide_build_text",
+            "Hides the beta/build label.");
+        AddUiHideToggle(uiOptions, defSet.HidePause, Core.Config.HidePause,
+            value => Core.Config.HidePause = value, "HIDE_PAUSE", "Hide Pause", "hide_pause",
+            "Hides the pause button and the Space: Pause hint.");
+        AddUiHideToggle(uiOptions, defSet.HideEditorIcons, Core.Config.HideEditorIcons,
+            value => Core.Config.HideEditorIcons = value, "HIDE_EDITOR_ICONS", "Hide Editor Icons", "hide_editor_icons",
+            "Hides the editor difficulty, autoplay, no-fail, and key-limiter icons.");
 
         O5Toggle fileAttemptToggle = O5Factory.Toggle(O5KitAdapters.Ctx,
             O5Factory.Row(O5KitAdapters.Ctx, content.transform),
@@ -258,6 +279,25 @@ public static class MainUI {
         => MainCore.Conf.AdvancedTooltip
             ? $"{Core.Tr.Get(key, def)}\n--\n{Core.Tr.Get(advKey, advDef)}"
             : Core.Tr.Get(key, def);
+
+    private static void AddUiHideToggle(Transform parent, bool defaultValue, bool value, Action<bool> set,
+        string localizationKey, string fallback, string id, string tooltip) {
+        var toggle = O5Factory.Toggle(O5KitAdapters.Ctx,
+            O5Factory.Row(O5KitAdapters.Ctx, parent),
+            defaultValue,
+            value,
+            enabled => {
+                set(enabled);
+                Core.ConfigFile.RequestSave();
+                Core.ApplyUiVisibility();
+            },
+            fallback,
+            id);
+        toggle.EnabledWhen = () => MainCore.IsModEnabled;
+        toggle.Label.gameObject.AddComponent<TextLocalization>().Init(localizationKey, fallback, Core.Tr);
+        toggle.Rect.AddToolTip(O5KitAdapters.Ctx, () => tooltip);
+        objects[toggle.Id] = toggle;
+    }
 
     private static void UpdateInputBlockerState(bool enable) {
         if (_inputBlockerObject != null) {

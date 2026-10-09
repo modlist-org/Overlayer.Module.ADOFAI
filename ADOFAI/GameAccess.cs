@@ -10,6 +10,7 @@ public static class GameAccess {
     public static readonly SafeMember<object> LevelMaker = new(new("scrLevelMaker", "instance"));
     public static readonly SafeMember<object> ScnGame = new(new("scnGame", "instance"));
     public static readonly SafeMember<object> ScnEditor = new(new("scnEditor", "instance"));
+    public static readonly SafeMember<object> UIController = new(new("scrUIController", "instance"));
     public static readonly SafeMember<bool> EditorPausedInPlayMode = new(new("scnEditor", "pausedInPlayMode"));
     public static readonly SafeMember<object> Cam = new(new("scrCamera", "instance"));
     public static readonly SafeMember<object> VfxPlus = new(new("scrVfxPlus", "instance"));
@@ -18,6 +19,7 @@ public static class GameAccess {
 
     // Controller
     public static readonly SafeMember<object> PlayerOne = new(new("scrController", "playerOne"));
+    public static readonly SafeMember<object> ControllerStateMachine = new(new("scrController", "stateMachine"));
     public static readonly SafeMember<object> CurrFloor = new(new("scrController", "currFloor"));
     public static readonly SafeMember<int> CurrentSeqID = new(new("scrController", "currentSeqID"));
     public static readonly SafeMember<float> PercentComplete = new(new("scrController", "percentComplete"));
@@ -100,6 +102,9 @@ public static class GameAccess {
     public static readonly SafeMember<bool> UseNoFail = new(new("GCS", "useNoFail"));
     public static readonly SafeMember<bool> SpeedTrialMode = new(new("GCS", "speedTrialMode"));
     public static readonly SafeMember<bool> DontShowTitles = new(new("GCS", "d_dontShowTitles"));
+    public static readonly SafeMember<bool> NoHud = new(new("RDC", "noHud"));
+    public static readonly SafeMember<bool> NoAutoHud = new(new("RDC", "noAutoHud"));
+    public static readonly SafeMember<object> EditorControlsTip = new(new("scnEditor", "controlsTip"));
 
 
     // Misc

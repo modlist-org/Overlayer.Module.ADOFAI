@@ -40,16 +40,16 @@ public class Core : OverlayerModule {
     private void OnLanguageChanged(string lang)
         => Tr.Language = lang;
 
-    private const string SupportedGameVersionPrefix = "1.4.2";
+    private const string SupportedGameVersionPrefix = "3.4";
 
     private static void CheckGameVersion() {
         try {
             string gameVersion = UnityEngine.Application.version;
             if(string.IsNullOrWhiteSpace(gameVersion)
                 || !gameVersion.StartsWith(SupportedGameVersionPrefix + ".", StringComparison.Ordinal)) {
-                Logger.Wrn($"[ADOFAI Module] Untested game version '{gameVersion}' (supports {SupportedGameVersionPrefix}.x). Tags may misbehave after a game update.");
+                Logger.Wrn($"Untested game version '{gameVersion}' (supports {SupportedGameVersionPrefix}.x). Tags may misbehave after a game update.");
             } else {
-                Logger.Msg($"[ADOFAI Module] Game version: {gameVersion}");
+                Logger.Msg($"Game version: {gameVersion}");
             }
         } catch {
         }
@@ -87,6 +87,7 @@ public class Core : OverlayerModule {
         Tr.Language = MainCore.Tr.Language;
 
         ConfigFile.Load();
+        UIVisibility.CaptureOriginals();
 
         CheckGameVersion();
 
@@ -141,6 +142,13 @@ public class Core : OverlayerModule {
         SafePatchController.Add(new SP_SessionAttemptPlay());
         SafePatchController.Add(new SP_FileAttemptLoad());
         SafePatchController.Add(new SP_FileAttemptPlay());
+        SafePatchController.Add(new SP_HideBuildText());
+        SafePatchController.Add(new SP_HideEditorIcons());
+        SafePatchController.Add(new SP_HidePause());
+        SafePatchController.Add(new SP_HidePauseHint());
+        SafePatchController.Add(new SP_HidePauseButton());
+        SafePatchController.Add(new SP_HideAllGameUI());
+        SafePatchController.Add(new SP_HideAllEditorUI());
         if(!Config.LazyPatches) {
             SafePatchController.ApplyAll();
         }
@@ -160,6 +168,7 @@ public class Core : OverlayerModule {
         foreach(var patch in SafePatchController.Get<SP_AllowRightAlt>()) patch.Apply();
         foreach(var patch in SafePatchController.Get<SP_FileAttemptLoad>()) patch.Apply();
         foreach(var patch in SafePatchController.Get<SP_FileAttemptPlay>()) patch.Apply();
+        ApplyUiVisibility();
 
         try { Tag.Input.Key.EnsureFeed(); } catch { }
 
@@ -176,6 +185,7 @@ public class Core : OverlayerModule {
 
     public override void OnDispose() {
         GameAccess.DontShowTitles.TrySet(null, false);
+        UIVisibility.RestoreAll();
 
         RemoveModulePatches();
 
@@ -205,6 +215,32 @@ public class Core : OverlayerModule {
         ConfigFile.Save();
     }
 
+    public static void ApplyUiVisibility() {
+        UIVisibility.ApplyNative();
+        UIVisibility.ApplyBuildTextNow();
+        ApplyState(SafePatchController.Get<SP_HideBuildText>(), Config.HideBuildText);
+        ApplyState(SafePatchController.Get<SP_HideEditorIcons>(), Config.HideEditorIcons);
+        ApplyState(SafePatchController.Get<SP_HidePause>(), Config.HidePause);
+        ApplyState(SafePatchController.Get<SP_HidePauseHint>(), Config.HidePause);
+        ApplyState(SafePatchController.Get<SP_HidePauseButton>(), Config.HidePause);
+        ApplyState(SafePatchController.Get<SP_HideAllGameUI>(), Config.HideAll);
+        ApplyState(SafePatchController.Get<SP_HideAllEditorUI>(), Config.HideAll);
+        if(!Config.HideAll) UIVisibility.ApplyAllGameUI(null);
+        if(!Config.HideBuildText) UIVisibility.RestoreBuildText();
+        if(!Config.HideEditorIcons) UIVisibility.RestoreEditorIcons();
+        if(!Config.HidePause) {
+            UIVisibility.RestorePauseButtons();
+            UIVisibility.RestorePauseHints();
+        }
+    }
+
+    private static void ApplyState<T>(T[] patches, bool enable) where T : SafeConditionalPatch {
+        foreach(var patch in patches) {
+            if(enable) patch.Apply();
+            else patch.Remove();
+        }
+    }
+
     private static void RemoveModulePatches() {
         var types = new System.Type[] {
             typeof(Patch.SP_BlockAsyncInput),
@@ -221,6 +257,13 @@ public class Core : OverlayerModule {
             typeof(Patch.SP_SessionAttemptPlay),
             typeof(Patch.SP_FileAttemptLoad),
             typeof(Patch.SP_FileAttemptPlay),
+            typeof(Patch.SP_HideBuildText),
+            typeof(Patch.SP_HideEditorIcons),
+            typeof(Patch.SP_HidePause),
+            typeof(Patch.SP_HidePauseHint),
+            typeof(Patch.SP_HidePauseButton),
+            typeof(Patch.SP_HideAllGameUI),
+            typeof(Patch.SP_HideAllEditorUI),
         };
         foreach(var type in types) {
             Overlayer.Patch.Safe.SafeConditionalPatch patch;

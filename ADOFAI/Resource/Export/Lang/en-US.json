@@ -28,6 +28,12 @@
     "ADV_DESC_LAZY_PATCHES": "Lazy keeps startup fast and leaves game code alone until a tag needs its patch, releasing it once unused.\n\nIf you're making overlays with lots of tags, turning this off to apply everything at game start may be better.",
     "LAZY_ACCESS": "Lazy Access",
     "DESC_LAZY_ACCESS": "Resolve game members on first use instead of at startup",
-    "ADV_DESC_LAZY_ACCESS": "Lazy access skips the startup scan and finds each game member the first time a tag reads it.\n\nTurn it off to resolve everything up front: slower start, but failures show up immediately instead of mid-game."
+    "ADV_DESC_LAZY_ACCESS": "Lazy access skips the startup scan and finds each game member the first time a tag reads it.\n\nTurn it off to resolve everything up front: slower start, but failures show up immediately instead of mid-game.",
+    "UI_OPTIONS": "UI",
+    "HIDE_ALL": "Hide All",
+    "HIDE_AUTOPLAY_STATUS": "Hide Autoplay Status",
+    "HIDE_BUILD_TEXT": "Hide Build Text",
+    "HIDE_PAUSE": "Hide Pause",
+    "HIDE_EDITOR_ICONS": "Hide Editor Icons"
   }
 }

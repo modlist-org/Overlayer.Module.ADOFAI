@@ -12,6 +12,11 @@ public sealed class ADOFAISettings : ISettingsFile {
     public bool FileFeature = false;
     public bool LazyPatches = true;
     public bool LazyAccess = true;
+    public bool HideAll = false;
+    public bool HideAutoplay = false;
+    public bool HideBuildText = false;
+    public bool HidePause = false;
+    public bool HideEditorIcons = false;
 
     public JToken Serialize() {
         return new JObject {
@@ -23,6 +28,11 @@ public sealed class ADOFAISettings : ISettingsFile {
             [nameof(FileFeature)] = FileFeature,
             [nameof(LazyPatches)] = LazyPatches,
             [nameof(LazyAccess)] = LazyAccess,
+            [nameof(HideAll)] = HideAll,
+            [nameof(HideAutoplay)] = HideAutoplay,
+            [nameof(HideBuildText)] = HideBuildText,
+            [nameof(HidePause)] = HidePause,
+            [nameof(HideEditorIcons)] = HideEditorIcons,
         };
     }
 
@@ -35,6 +45,11 @@ public sealed class ADOFAISettings : ISettingsFile {
         FileFeature = Read(token, nameof(FileFeature), FileFeature);
         LazyPatches = Read(token, nameof(LazyPatches), LazyPatches);
         LazyAccess = Read(token, nameof(LazyAccess), LazyAccess);
+        HideAll = Read(token, nameof(HideAll), HideAll);
+        HideAutoplay = Read(token, nameof(HideAutoplay), HideAutoplay);
+        HideBuildText = Read(token, nameof(HideBuildText), HideBuildText);
+        HidePause = Read(token, nameof(HidePause), HidePause);
+        HideEditorIcons = Read(token, nameof(HideEditorIcons), HideEditorIcons);
     }
 
     private static T? Read<T>(JToken token, string key, T fallback) {
