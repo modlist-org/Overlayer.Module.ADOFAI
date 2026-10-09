@@ -127,6 +127,7 @@ public static class Status {
             return floor == null ? 1d : GameAccess.FloorMarginScale.Get(floor, 1d);
         }
     }
+    [Tag(TagType = TagType.BlockOnNotPlaying, Desc = "Timing Window Scale (%)")] public static double MarginScalePercent => MarginScale * 100d;
 
     private static string LocalizedDifficulty(string name) {
         if(string.IsNullOrEmpty(name)) return string.Empty;

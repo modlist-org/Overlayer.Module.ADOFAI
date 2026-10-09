@@ -101,8 +101,26 @@ public static class Combo {
         return set;
     }
 
+    private static readonly Dictionary<string, string> Aliases = new(StringComparer.OrdinalIgnoreCase) {
+        ["XP"] = "XPerfect",
+        ["PM"] = "PerfectMinus",
+        ["PP"] = "PerfectPlus",
+        ["EP"] = "EarlyPerfect",
+        ["LP"] = "LatePerfect",
+        ["TE"] = "TooEarly",
+        ["TL"] = "TooLate",
+        ["VE"] = "VeryEarly",
+        ["VL"] = "VeryLate",
+        ["A"] = "Auto",
+        ["FM"] = "FailMiss",
+        ["FO"] = "FailOverload",
+        ["MP"] = "Multipress",
+        ["OP"] = "OverPress",
+    };
+
     private static HashSet<object> Parse(string margin) {
         var set = new HashSet<object>();
+        if(Aliases.TryGetValue(margin?.Trim() ?? string.Empty, out var alias)) margin = alias;
         var value = GameAccess.ParseHitMargin(margin);
         if(value != null) set.Add(value);
         return set;
