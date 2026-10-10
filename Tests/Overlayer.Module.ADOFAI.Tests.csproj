@@ -6,7 +6,8 @@
     <Nullable>disable</Nullable>
     <LangVersion>latest</LangVersion>
     <IsPackable>false</IsPackable>
-    <RootNamespace>Overlayer.Module.Tests</RootNamespace>
+    <RootNamespace>Overlayer.Module.ADOFAI.Tests</RootNamespace>
+    <AssemblyName>Overlayer.Module.ADOFAI.Tests</AssemblyName>
   </PropertyGroup>
 
   <ItemGroup>

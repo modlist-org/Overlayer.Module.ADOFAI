@@ -5,7 +5,7 @@ using System.Text.RegularExpressions;
 using Xunit;
 using Xunit.Abstractions;
 
-namespace Overlayer.Module.Tests;
+namespace Overlayer.Module.ADOFAI.Tests;
 
 public sealed class GameAccessTests {
     private readonly ITestOutputHelper _output;

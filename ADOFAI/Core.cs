@@ -1,4 +1,4 @@
-﻿using Overlayer.Compat;
+using Overlayer.Compat;
 using Overlayer.Core;
 using Overlayer.IO;
 using Overlayer.Localization;
@@ -35,7 +35,7 @@ public class Core : OverlayerModule {
     public static SpriteManager Spr { get; } = new(Res);
 
     private static void LoadTr()
-        => _ = Tr.Load(new(Path.Combine(MainCore.Paths.ModulePath, "ADOFAI/Lang")));
+        => _ = Tr.Load(Path.Combine(MainCore.Paths.ModulePath, "ADOFAI/Lang"));
 
     private void OnLanguageChanged(string lang)
         => Tr.Language = lang;
@@ -115,7 +115,7 @@ public class Core : OverlayerModule {
                     sourceFont,
                     100,
                     10,
-                    GlyphRenderMode.SDFAA,
+                    UnityEngine.TextCore.LowLevel.GlyphRenderMode.SDFAA,
                     1024,
                     1024
                 );

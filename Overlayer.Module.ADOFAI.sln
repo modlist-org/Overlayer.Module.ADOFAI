@@ -1,8 +1,8 @@
-﻿
+
 Microsoft Visual Studio Solution File, Format Version 12.00
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Overlayer.Module.ADOFAI", "ADOFAI\Overlayer.Module.ADOFAI.csproj", "{4DB7C3EB-C120-43AD-AB06-0A9FD561AF95}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Overlayer.Module.Tests", "Tests\Overlayer.Module.Tests.csproj", "{B7C4B2C0-4B02-4110-B5FC-56E2118CE125}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Overlayer.Module.ADOFAI.Tests", "Tests\Overlayer.Module.ADOFAI.Tests.csproj", "{B7C4B2C0-4B02-4110-B5FC-56E2118CE125}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

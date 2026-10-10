@@ -12,7 +12,7 @@ public static class Camera {
     public static float CamRot => NormalizedRotation;
 
     [Tag(Desc = "Camera rotation in radians (0-Tau)")]
-    public static float CamRotRad => NormalizedRotation * MathF.PI / 180f;
+    public static float CamRotRad => NormalizedRotation * UnityEngine.Mathf.PI / 180f;
 
     [Tag(Desc = "Camera zoom (1 = normal)")]
     public static float CamZoom {
