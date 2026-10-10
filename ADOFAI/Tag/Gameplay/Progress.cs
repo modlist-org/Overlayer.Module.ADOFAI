@@ -1,3 +1,4 @@
+using Overlayer.Patch.Lazy;
 using Overlayer.Tag.Core;
 using Overlayer.Utility.Access;
 using System;
@@ -56,7 +57,7 @@ public static class Progress {
     [Tag(TagType = TagType.BlockOnNotPlaying, Desc = "Time-based start progress (0-1)")] public static double StartActualProgress {
         get {
             var floors = Floors();
-            int idx = StartTile;
+            int idx = StartTile - 1;
             return floors == null || idx < 0 || idx >= floors.Count ? 0 : TimeProgressAt(floors[idx]);
         }
     }
@@ -72,6 +73,7 @@ public static class Progress {
     }
     [Tag(TagType = TagType.BlockOnNotPlaying, Desc = "Time-based progress (%)")] public static double ActualProgressPercent => ActualProgress * 100d;
 
+    [NeedsPatch(typeof(Patch.SP_FailHistoryRecord), typeof(Patch.SP_DeathFreeze2), typeof(Patch.SP_ResetTagState))]
     [Tag(TagType = TagType.BlockOnNotPlaying, Desc = "Time-based progress, updated every frame (0-1)")] public static double SmoothActualProgress {
         get {
             var floors = Floors();
@@ -83,6 +85,7 @@ public static class Progress {
             return end <= start ? 0 : Math.Max(0, Math.Min(1, (now - start) / (end - start)));
         }
     }
+    [NeedsPatch(typeof(Patch.SP_FailHistoryRecord), typeof(Patch.SP_DeathFreeze2), typeof(Patch.SP_ResetTagState))]
     [Tag(TagType = TagType.BlockOnNotPlaying, Desc = "Time-based progress, updated every frame (%)")] public static double SmoothActualProgressPercent => SmoothActualProgress * 100d;
 
     [Tag(TagType = TagType.BlockOnNotPlaying, Desc = "Checkpoints used")] public static int CheckpointsUsed => GameAccess.CheckpointsUsedCount.Get(Controller, 0);

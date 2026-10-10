@@ -57,3 +57,19 @@ public class SP_FailHistoryRecord() : SafeConditionalPatch(nameof(SP_FailHistory
         if(conductor != null) Status.GameplayState.DeathSongPosition ??= GameAccess.SongPosition.Get(conductor);
     }
 }
+
+public class SP_DeathFreeze2() : SafeConditionalPatch(nameof(SP_DeathFreeze2)) {
+    protected override bool ShouldApply() => true;
+
+    // Some deaths reach Fail2Action without FailAction; freeze smooth progress there too.
+    protected override MethodBase GetTargetMethod()
+        => SafePatch.GetMethodSafe("scrController", "Fail2Action");
+
+    protected override HarmonyMethod Prefix() => new HarmonyMethod(typeof(SP_DeathFreeze2)
+        .GetMethod(nameof(PrefixImpl), BindingFlags.Static | BindingFlags.NonPublic));
+
+    private static void PrefixImpl() {
+        var conductor = GameAccess.Conductor.Get(null);
+        if(conductor != null) Status.GameplayState.DeathSongPosition ??= GameAccess.SongPosition.Get(conductor);
+    }
+}
