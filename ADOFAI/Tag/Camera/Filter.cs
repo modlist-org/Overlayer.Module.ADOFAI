@@ -1,11 +1,14 @@
 using Overlayer.Tag.Core;
 using Overlayer.Utility.Access;
 using System;
+using System.Collections.Generic;
 using UnityEngine;
 
 namespace Overlayer.Module.ADOFAI.Tag.Camera;
 
 public static class Filter {
+    private static readonly Dictionary<string, (Type type, System.Reflection.FieldInfo field)> cache = new();
+
     [Tag(Desc = "TV Wide Screen Horizontal letterbox size (0-0.8, higher = more covered)")]
     public static float FilterLetterboxY => FilterSize("CameraFilterPack_TV_WideScreenHorizontal");
 
@@ -33,14 +36,17 @@ public static class Filter {
                 _ => null,
             };
             if(go == null) return 0f;
-            var type = SafeAccess.FindType(typeName);
-            if(type == null) return 0f;
-            var component = go.GetComponent(type) as Behaviour;
+            if (!cache.TryGetValue(typeName, out var entry)) {
+                var type = SafeAccess.FindType(typeName);
+                var field = type?.GetField("Size",
+                    System.Reflection.BindingFlags.Public | System.Reflection.BindingFlags.Instance);
+                entry = (type, field);
+                cache[typeName] = entry;
+            }
+            if (entry.type == null || entry.field == null) return 0f;
+            var component = go.GetComponent(entry.type) as Behaviour;
             if(component == null || !component.enabled) return 0f;
-            var field = type.GetField("Size",
-                System.Reflection.BindingFlags.Public | System.Reflection.BindingFlags.Instance);
-            if(field == null) return 0f;
-            float value = Convert.ToSingle(field.GetValue(component));
+            float value = Convert.ToSingle(entry.field.GetValue(component));
             return float.IsNaN(value) || float.IsInfinity(value) ? 0f : Math.Max(0f, value);
         } catch {
             return 0f;
