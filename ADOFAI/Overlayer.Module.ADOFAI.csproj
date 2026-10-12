@@ -1,7 +1,7 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
     <PropertyGroup>
-        <TargetFramework>netstandard2.0</TargetFramework>
+        <TargetFramework>netstandard2.1</TargetFramework>
         <Nullable>enable</Nullable>
         <NeutralLanguage>en-US</NeutralLanguage>
         <AssemblyName>Overlayer.Module.ADOFAI</AssemblyName>
@@ -21,12 +21,12 @@
     <ItemGroup>
         <ProjectReference Include="$(O5KitProject)">
             <SetConfiguration>Configuration=$(O5KitConfiguration)</SetConfiguration>
-            <SetTargetFramework>TargetFramework=netstandard2.0</SetTargetFramework>
+            <SetTargetFramework>TargetFramework=netstandard2.1</SetTargetFramework>
         </ProjectReference>
     </ItemGroup>
 	
     <ItemGroup>
-		<Reference Include="Overlayer" HintPath="$(OverlayerPath)/bin/Release_ML/netstandard2.0/Overlayer.dll" />
+		<Reference Include="Overlayer" HintPath="$(OverlayerPath)/bin/Release_ML/netstandard2.1/Overlayer.dll" />
         <Reference Include="0Harmony" HintPath="$(GamePath)/MelonLoader/net35/0Harmony.dll" />
         <Reference Include="Accessibility" HintPath="$(GamePath)/$(GameData)/Managed/Accessibility.dll" />
         <Reference Include="DemiLib" HintPath="$(GamePath)/$(GameData)/Managed/DemiLib.dll" />
