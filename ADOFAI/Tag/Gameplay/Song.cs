@@ -8,14 +8,26 @@ namespace Overlayer.Module.ADOFAI.Tag.Gameplay;
 public static class Song {
     private static object Controller => GameAccess.Controller.Get(null);
 
+    private static int levelFrame = -1;
+    private static object levelObj;
+
     private static object Level() {
+        int frame = UnityEngine.Time.frameCount;
+        if (frame == levelFrame) {
+            return levelObj;
+        }
+        levelFrame = frame;
         var game = GameAccess.ScnGame.Get(null);
         if(game != null) {
             var level = GameAccess.GameLevelData.Get(game);
-            if(level != null) return level;
+            if(level != null) {
+                levelObj = level;
+                return level;
+            }
         }
         var editor = GameAccess.ScnEditor.Get(null);
-        return editor == null ? null : GameAccess.EditorLevelData.Get(editor);
+        levelObj = editor == null ? null : GameAccess.EditorLevelData.Get(editor);
+        return levelObj;
     }
 
     [Tag(Desc = "Song title")] public static string Title => Strip(Level() == null ? null : GameAccess.LevelSong.Get(Level()));
