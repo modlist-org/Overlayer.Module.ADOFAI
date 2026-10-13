@@ -57,6 +57,36 @@ public static class Counts {
     [Tag(TagType = TagType.BlockOnNotPlaying, Desc = "Accuracy (%)")]  public static double AccuracyPercent => Accuracy * 100d;
     [Tag(TagType = TagType.BlockOnNotPlaying, Desc = "XAccuracy (%)")] public static double XAccuracyPercent => XAccuracy * 100d;
 
+    // The game's own maxPossibleXAcc, with the same checkpoint penalty percentXAcc gets outside the editor.
+    [Tag(TagType = TagType.BlockOnNotPlaying, Desc = "Max reachable XAccuracy if every remaining tile is XPerfect (0-1)")]
+    public static double MaxXAccuracy {
+        get {
+            double max = GameAccess.MaxPossibleXAcc.Get(SnapshotTracker(), float.NaN);
+            if(GameAccess.ScnEditor.Get(null) != null) return max;
+            var controller = GameAccess.Controller.Get(null);
+            int checkpoints = controller == null ? 0 : GameAccess.CheckpointsUsedCount.Get(controller);
+            return max * System.Math.Pow(0.9875, checkpoints);
+        }
+    }
+    [Tag(TagType = TagType.BlockOnNotPlaying, Desc = "Max reachable XAccuracy (%)")] public static double MaxXAccuracyPercent => MaxXAccuracy * 100d;
+
+    // Mirrors scrMarginTracker.CalculatePercentAcc with every remaining tile counted as a Perfect.
+    // ponytail: remaining hits = LeftTile, so holds/midspins can skew it slightly; read the tracker's floor counts if that matters.
+    [Tag(TagType = TagType.BlockOnNotPlaying, Desc = "Max reachable Accuracy if every remaining tile is Perfect (0-1)")]
+    public static double MaxAccuracy {
+        get {
+            var tracker = SnapshotTracker();
+            if(tracker == null) return float.NaN;
+            int perfect = PXP + PM + PP + A + CurrentCount("Midspin") + Multipress;
+            int counted = perfect + EP + LP;
+            int total = (GameAccess.HitMargins.Get(tracker) is System.Collections.ICollection hits ? hits.Count : 0) + Deaths();
+            int left = Gameplay.Progress.LeftTile;
+            double ratio = counted + left == total + left ? 1d : (double)(counted + left) / (total + left);
+            return ratio + (perfect + left - CurrentCount("FailedFloor")) * 0.0001;
+        }
+    }
+    [Tag(TagType = TagType.BlockOnNotPlaying, Desc = "Max reachable Accuracy (%)")] public static double MaxAccuracyPercent => MaxAccuracy * 100d;
+
     [Tag(TagType = TagType.BlockOnNotPlaying, Desc = "X-Score")]       public static int XScore => GameAccess.XScoreValue.Get(SnapshotTracker(), 0);
     [Tag(TagType = TagType.BlockOnNotPlaying, Desc = "Max X-Score")]   public static int MaxXScore => GameAccess.MaxXScoreValue.Get(SnapshotTracker(), 0);
     [Tag(TagType = TagType.BlockOnNotPlaying, Desc = "Last X-Score")]  public static int LastXScore => GameAccess.LastXScoreValue.Get(SnapshotTracker(), 0);

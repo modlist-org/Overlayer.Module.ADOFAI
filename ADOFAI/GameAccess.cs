@@ -35,6 +35,7 @@ public static class GameAccess {
     public static readonly SafeMember<object> PlanetarySystem = new(new("scrPlayer", "planetarySystem"));
     public static readonly SafeMember<float> PercentAcc = new(new("scrMarginTracker", "percentAcc"));
     public static readonly SafeMember<float> PercentXAcc = new(new("scrMarginTracker", "percentXAcc"));
+    public static readonly SafeMember<float> MaxPossibleXAcc = new(new("scrMarginTracker", "maxPossibleXAcc"));
     public static readonly SafeMember<int> XScoreValue = new(new("scrMarginTracker", "xScore"));
     public static readonly SafeMember<int> MaxXScoreValue = new(new("scrMarginTracker", "maxXScore"));
     public static readonly SafeMember<int> LastXScoreValue = new(new("scrMarginTracker", "lastXScore"));

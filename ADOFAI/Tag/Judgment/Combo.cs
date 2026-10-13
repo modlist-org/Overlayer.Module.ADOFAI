@@ -20,6 +20,7 @@ public static class Combo {
     public static int ComboValue => GetRuns("*", IsPerfect).tail;
     [Tag(Name = "Combo", TagType = TagType.BlockOnNotPlaying, Desc = "Current combo")] public static int ComboTag => ComboValue;
     [Tag(TagType = TagType.ProcessFormat | TagType.BlockOnNotPlaying, Desc = "Max combo")] public static int MaxCombo => GetRuns("*", IsPerfect).max;
+    [Tag(TagType = TagType.BlockOnNotPlaying, Desc = "Combo you finish with if every remaining tile is Perfect")] public static int MaxPossibleCombo => ComboValue + Gameplay.Progress.LeftTile;
     [Tag(TagType = TagType.ProcessFormat | TagType.BlockOnNotPlaying, Desc = "Current combo of a judgment")] public static int MarginCombo(string margin) => GetRuns("c:" + margin, Matches(ParseCached(margin))).tail;
     [Tag(TagType = TagType.ProcessFormat | TagType.BlockOnNotPlaying, Desc = "Max combo of a judgment")] public static int MarginMaxCombo(string margin) => GetRuns("c:" + margin, Matches(ParseCached(margin))).max;
     [Tag(TagType = TagType.ProcessFormat | TagType.BlockOnNotPlaying, Desc = "Current combo of judgments (a|b|...)")] public static int MarginCombos(string margins) => GetRuns("m:" + margins, Matches(ParseManyCached(margins))).tail;

@@ -1,6 +1,7 @@
 using Overlayer.Tag.Core;
 using Overlayer.Utility.Access;
 using System;
+using System.Collections;
 using UnityEngine;
 
 namespace Overlayer.Module.ADOFAI.Tag.Gameplay;
@@ -67,6 +68,35 @@ public static class Song {
     [Tag(Desc = "Tile BPM (pitch excluded)")] public static double TileBpmWithoutPitch => BaseBpm * CurrentSpeed;
     [Tag(Desc = "Current BPM (pitch excluded)")] public static double CurBpmWithoutPitch => RealBpm;
     [Tag(Desc = "Keys per second (from BPM, pitch excluded)")] public static double BpmKpsWithoutPitch => CurBpmWithoutPitch / 60d;
+    [Tag(Desc = "Highest real BPM anywhere in the level (with pitch)")] public static double MaxBpm => PeakBpm * SongPitch;
+    [Tag(Desc = "Highest keys per second anywhere in the level (with pitch)")] public static double MaxKps => MaxBpm / 60d;
+    [Tag(Desc = "Highest real BPM anywhere in the level (pitch excluded)")] public static double MaxBpmWithoutPitch => PeakBpm;
+
+    private static object peakFloors;
+    private static int peakCount = -1;
+    private static double peakBpm;
+
+    // Same per-floor BPM as RealBpm, scanned once per floor list (rebuilt when the level changes).
+    private static double PeakBpm {
+        get {
+            var maker = GameAccess.LevelMaker.Get(null);
+            if((maker == null ? null : GameAccess.FloorList.Get(maker)) is not IList floors) {
+                return 0;
+            }
+            if(ReferenceEquals(floors, peakFloors) && floors.Count == peakCount) {
+                return peakBpm;
+            }
+            double max = 0;
+            for(int i = 0; i + 1 < floors.Count; i++) {
+                double duration = GameAccess.EntryTime.Get(floors[i + 1]) - GameAccess.EntryTime.Get(floors[i]);
+                if(duration > 0) max = Math.Max(max, 60d / duration);
+            }
+            peakFloors = floors;
+            peakCount = floors.Count;
+            peakBpm = max;
+            return max;
+        }
+    }
 
     private static double BaseBpm {
         get {
