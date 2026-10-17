@@ -87,11 +87,11 @@ public class Core : OverlayerModule {
         Tr.Language = MainCore.Tr.Language;
 
         ConfigFile.Load();
+        SafeAccess.ModeOverride = Config.LazyAccess ? SafeResolveMode.Lazy : null;
         UIVisibility.CaptureOriginals();
 
         CheckGameVersion();
 
-        SafeAccess.ModeOverride = Config.LazyAccess ? SafeResolveMode.Lazy : null;
         playbackStateRegistration = PlaybackState.Register(() => {
             return IsPlaying;
         });
@@ -151,27 +151,25 @@ public class Core : OverlayerModule {
         SafePatchController.Add(new SP_HidePauseButton());
         SafePatchController.Add(new SP_HideAllGameUI());
         SafePatchController.Add(new SP_HideAllEditorUI());
-        if(!Config.LazyPatches) {
-            SafePatchController.ApplyAll();
-        }
-        // Linux input fix is never lazy: no tag triggers it, so lazy mode
-        // would leave it off until the toggle is cycled. Apply() is
-        // self-guarded (platform + config) and idempotent under ApplyAll.
-        foreach(var patch in SafePatchController.Get<SP_LinuxTMPKeyInput>()) patch.Apply();
-        foreach(var patch in SafePatchController.Get<SP_LinuxLegacyKeyInput>()) patch.Apply();
-        // Same for config-gated non-tag patches: toggles only ApplyState on
-        // change, so a saved true would start unpatched in lazy mode.
-        // Apply() no-ops when its config is off.
-        foreach(var patch in SafePatchController.Get<SP_BlockAsyncInput>()) patch.Apply();
-        foreach(var patch in SafePatchController.Get<SP_BlockLegacyInput>()) patch.Apply();
-        foreach(var patch in SafePatchController.Get<SP_BlockInputMethod>()) patch.Apply();
-        foreach(var patch in SafePatchController.Get<SP_BlockDirectInput>()) patch.Apply();
-        foreach(var patch in SafePatchController.Get<SP_ShowAutoJudgment>()) patch.Apply();
-        foreach(var patch in SafePatchController.Get<SP_AllowSpecialKeys>()) patch.Apply();
-        foreach(var patch in SafePatchController.Get<SP_AllowSpecialKeysAsync>()) patch.Apply();
-        foreach(var patch in SafePatchController.Get<SP_FileAttemptLoad>()) patch.Apply();
-        foreach(var patch in SafePatchController.Get<SP_FileAttemptPlay>()) patch.Apply();
-        ApplyUiVisibility();
+        _ = System.Threading.Tasks.Task.Run(() => {
+            if(!Config.LazyPatches) {
+                SafePatchController.ApplyAll();
+            } else {
+                foreach(var patch in SafePatchController.Get<SP_LinuxTMPKeyInput>()) patch.Apply();
+                foreach(var patch in SafePatchController.Get<SP_LinuxLegacyKeyInput>()) patch.Apply();
+                foreach(var patch in SafePatchController.Get<SP_BlockAsyncInput>()) patch.Apply();
+                foreach(var patch in SafePatchController.Get<SP_BlockLegacyInput>()) patch.Apply();
+                foreach(var patch in SafePatchController.Get<SP_BlockInputMethod>()) patch.Apply();
+                foreach(var patch in SafePatchController.Get<SP_BlockDirectInput>()) patch.Apply();
+                foreach(var patch in SafePatchController.Get<SP_ShowAutoJudgment>()) patch.Apply();
+                foreach(var patch in SafePatchController.Get<SP_AllowSpecialKeys>()) patch.Apply();
+                foreach(var patch in SafePatchController.Get<SP_AllowSpecialKeysAsync>()) patch.Apply();
+                foreach(var patch in SafePatchController.Get<SP_FileAttemptLoad>()) patch.Apply();
+                foreach(var patch in SafePatchController.Get<SP_FileAttemptPlay>()) patch.Apply();
+                ApplyUiPatches();
+            }
+        });
+        ApplyUiVisibility(applyPatches: false);
 
         Overlayer.Package.PresetStore.Register(new Overlayer.Package.PackagePreset {
             Id = "module:ADOFAI:Moon",
@@ -227,9 +225,7 @@ public class Core : OverlayerModule {
         ConfigFile.Save();
     }
 
-    public static void ApplyUiVisibility() {
-        UIVisibility.ApplyNative();
-        UIVisibility.ApplyBuildTextNow();
+    public static void ApplyUiPatches() {
         ApplyState(SafePatchController.Get<SP_HideBuildText>(), Config.HideBuildText);
         ApplyState(SafePatchController.Get<SP_HideEditorIcons>(), Config.HideEditorIcons);
         ApplyState(SafePatchController.Get<SP_HidePause>(), Config.HidePause);
@@ -237,6 +233,12 @@ public class Core : OverlayerModule {
         ApplyState(SafePatchController.Get<SP_HidePauseButton>(), Config.HidePause);
         ApplyState(SafePatchController.Get<SP_HideAllGameUI>(), Config.HideAll);
         ApplyState(SafePatchController.Get<SP_HideAllEditorUI>(), Config.HideAll);
+    }
+
+    public static void ApplyUiVisibility(bool applyPatches = true) {
+        UIVisibility.ApplyNative();
+        UIVisibility.ApplyBuildTextNow();
+        if(applyPatches) ApplyUiPatches();
         if(!Config.HideAll) UIVisibility.ApplyAllGameUI(null);
         if(!Config.HideBuildText) UIVisibility.RestoreBuildText();
         if(!Config.HideEditorIcons) UIVisibility.RestoreEditorIcons();

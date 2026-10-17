@@ -19,7 +19,7 @@ public static class SpecialKeys {
     public static readonly Option[] Options = [
         new("LeftAlt", "Left Alt", [KeyCode.LeftAlt], [KeyLabel.LAlt]),
         new("RightAlt", "Right Alt", [KeyCode.RightAlt], []),
-        new("Windows", "Windows / Command", [KeyCode.LeftWindows, KeyCode.RightWindows, KeyCode.LeftMeta, KeyCode.RightMeta], [KeyLabel.Super]),
+        new("Windows", "Windows / Command", [KeyCode.LeftWindows, KeyCode.RightWindows, KeyCode.LeftCommand, KeyCode.RightCommand], [KeyLabel.Super]),
         new("Tab", "Tab", [KeyCode.Tab], []),
         new("End", "End", [KeyCode.End], []),
         new("F1_F11", "F1 - F11", [KeyCode.F1, KeyCode.F2, KeyCode.F3, KeyCode.F4, KeyCode.F5, KeyCode.F6, KeyCode.F7, KeyCode.F8, KeyCode.F9, KeyCode.F10, KeyCode.F11], []),

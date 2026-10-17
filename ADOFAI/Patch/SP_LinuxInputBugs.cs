@@ -8,8 +8,9 @@ using LegacyInputField = UnityEngine.UI.InputField;
 namespace Overlayer.Module.ADOFAI.Patch;
 
 public sealed class SP_LinuxTMPKeyInput() : SafeConditionalPatch(nameof(SP_LinuxTMPKeyInput)) {
+    private static readonly bool IsLinux = Application.platform == RuntimePlatform.LinuxPlayer;
     protected override bool ShouldApply()
-        => Application.platform == RuntimePlatform.LinuxPlayer && Core.Config.LinuxTextInputFix;
+        => IsLinux && Core.Config.LinuxTextInputFix;
     protected override MethodBase GetTargetMethod()
         => typeof(TMP_InputField).GetMethod("KeyPressed", BindingFlags.Instance | BindingFlags.NonPublic)!;
     protected override HarmonyMethod Prefix()
@@ -18,8 +19,9 @@ public sealed class SP_LinuxTMPKeyInput() : SafeConditionalPatch(nameof(SP_Linux
 }
 
 public sealed class SP_LinuxLegacyKeyInput() : SafeConditionalPatch(nameof(SP_LinuxLegacyKeyInput)) {
+    private static readonly bool IsLinux = Application.platform == RuntimePlatform.LinuxPlayer;
     protected override bool ShouldApply()
-        => Application.platform == RuntimePlatform.LinuxPlayer && Core.Config.LinuxTextInputFix;
+        => IsLinux && Core.Config.LinuxTextInputFix;
     protected override MethodBase GetTargetMethod()
         => typeof(LegacyInputField).GetMethod("KeyPressed", BindingFlags.Instance | BindingFlags.NonPublic)!;
     protected override HarmonyMethod Prefix()
