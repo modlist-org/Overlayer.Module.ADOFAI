@@ -135,7 +135,9 @@ public class Core : OverlayerModule {
         SafePatchController.Add(new SP_LinuxTMPKeyInput());
         SafePatchController.Add(new SP_LinuxLegacyKeyInput());
         SafePatchController.Add(new SP_ShowAutoJudgment());
-        SafePatchController.Add(new SP_AllowRightAlt());
+        SpecialKeys.Refresh();
+        SafePatchController.Add(new SP_AllowSpecialKeys());
+        SafePatchController.Add(new SP_AllowSpecialKeysAsync());
         SafePatchController.Add(new SP_ResetTagState());
         SafePatchController.Add(new SP_RecordTiming());
         SafePatchController.Add(new SP_SessionAttemptLoad());
@@ -165,7 +167,8 @@ public class Core : OverlayerModule {
         foreach(var patch in SafePatchController.Get<SP_BlockInputMethod>()) patch.Apply();
         foreach(var patch in SafePatchController.Get<SP_BlockDirectInput>()) patch.Apply();
         foreach(var patch in SafePatchController.Get<SP_ShowAutoJudgment>()) patch.Apply();
-        foreach(var patch in SafePatchController.Get<SP_AllowRightAlt>()) patch.Apply();
+        foreach(var patch in SafePatchController.Get<SP_AllowSpecialKeys>()) patch.Apply();
+        foreach(var patch in SafePatchController.Get<SP_AllowSpecialKeysAsync>()) patch.Apply();
         foreach(var patch in SafePatchController.Get<SP_FileAttemptLoad>()) patch.Apply();
         foreach(var patch in SafePatchController.Get<SP_FileAttemptPlay>()) patch.Apply();
         ApplyUiVisibility();
@@ -259,7 +262,8 @@ public class Core : OverlayerModule {
             typeof(Patch.SP_LinuxTMPKeyInput),
             typeof(Patch.SP_LinuxLegacyKeyInput),
             typeof(Patch.SP_ShowAutoJudgment),
-            typeof(Patch.SP_AllowRightAlt),
+            typeof(Patch.SP_AllowSpecialKeys),
+            typeof(Patch.SP_AllowSpecialKeysAsync),
             typeof(Patch.SP_ResetTagState),
             typeof(Patch.SP_RecordTiming),
             typeof(Patch.SP_SessionAttemptLoad),

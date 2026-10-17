@@ -137,24 +137,6 @@ public static class MainUI {
         objects[blockInputToggle.Id] = blockInputToggle;
         blockInputToggle.Rect.AddToolTip(O5KitAdapters.Ctx, () => TooltipText("DESC_BLOCK_INPUT_WHEN_OPENED", "Blocks game inputs while the Overlayer UI is opened", "ADV_DESC_BLOCK_INPUT_WHEN_OPENED", "Hooks into ADOFAI's input architecture across 4 distinct layers:\n\n1. Async Input: Patches scrPlayer.ValidInputWasTriggered and clears key masks in AsyncInputManager.\n2. Legacy Input: Patches RDInputType_Keyboard.CheckKeyState to block editing and mouse input.\n3. Input Method: Intercepts OptionsPanelsCLS.CheckInputs to suppress menu input events.\n4. Direct Input: Uses Transpiler on level select Update methods to redirect UnityEngine.Input calls to custom wrappers.\n\nAlso creates a full-screen Raycast target (EmptyGraphic) behind the UI to block UI-level interactions"));
 
-        O5Toggle allowRightAltToggle = O5Factory.Toggle(O5KitAdapters.Ctx,
-            O5Factory.Row(O5KitAdapters.Ctx, content.transform),
-            defSet.AllowRightAlt,
-            Core.Config.AllowRightAlt,
-            toggle => {
-                Core.Config.AllowRightAlt = toggle;
-                Core.ConfigFile.RequestSave();
-
-                ApplyState(SafePatchController.Get<SP_AllowRightAlt>(), toggle);
-            },
-            "Allow Right Alt",
-            "allow_right_alt"
-        );
-        allowRightAltToggle.EnabledWhen = () => MainCore.IsModEnabled;
-        allowRightAltToggle.Label.gameObject.AddComponent<TextLocalization>().Init("ALLOW_RIGHT_ALT", "Allow Right Alt", Core.Tr);
-        objects[allowRightAltToggle.Id] = allowRightAltToggle;
-        allowRightAltToggle.Rect.AddToolTip(O5KitAdapters.Ctx, () => Core.Tr.Get("DESC_ALLOW_RIGHT_ALT", "Lets Right Alt count as a hit key (the game ignores it by default)"));
-
         O5Toggle showAutoJudgmentToggle =O5Factory.Toggle(O5KitAdapters.Ctx,
             O5Factory.Row(O5KitAdapters.Ctx, content.transform),
             defSet.ShowAutoplayJudgment,
@@ -172,6 +154,34 @@ public static class MainUI {
         showAutoJudgmentToggle.Label.gameObject.AddComponent<TextLocalization>().Init("SHOW_AUTOPLAY_JUDGMENT", "Show Autoplay Judgment", Core.Tr);
         objects[showAutoJudgmentToggle.Id] = showAutoJudgmentToggle;
         showAutoJudgmentToggle.Rect.AddToolTip(O5KitAdapters.Ctx, () => TooltipText("DESC_SHOW_AUTOPLAY_JUDGMENT", "Applies a patch to show the true judgment in AutoPlay on the Hit Error Meter", "ADV_DESC_SHOW_AUTOPLAY_JUDGMENT", "Patches scrController.UpdateHitErrorMeter method using Transpiler.\n\nOriginal UpdateHitErrorMeter checks 'RDC.auto'\nto force hit error meter values to 0.0f (Perfect)\nduring AutoPlay.\nThe Transpiler scans IL instructions for Call 'RDC.get_auto',\nand replaces it with Ldc_I4_0.\n\nThis forces the auto check to evaluate as false,\nallowing the Error Meter to process actual angle diffs\nand margin scales"));
+
+        var (_, allowKeysCard) = O5Factory.Card(O5KitAdapters.Ctx, content.transform,
+            Core.Tr.Get("ALLOWED_SPECIAL_KEYS", "Allowed Hit Keys"), true, null, null,
+            showDeleteButton: false, showActiveToggle: false);
+
+        foreach(var option in SpecialKeys.Options) {
+            string key = "ALLOW_KEY_" + option.Id.ToUpperInvariant();
+            O5Toggle keyToggle = O5Factory.Toggle(O5KitAdapters.Ctx,
+                O5Factory.Row(O5KitAdapters.Ctx, allowKeysCard),
+                defSet.AllowedSpecialKeys.Contains(option.Id),
+                Core.Config.AllowedSpecialKeys.Contains(option.Id),
+                toggle => {
+                    if(toggle) Core.Config.AllowedSpecialKeys.Add(option.Id);
+                    else Core.Config.AllowedSpecialKeys.Remove(option.Id);
+                    Core.ConfigFile.RequestSave();
+
+                    SpecialKeys.Refresh();
+                    ApplyState(SafePatchController.Get<SP_AllowSpecialKeys>(), SpecialKeys.Any);
+                    ApplyState(SafePatchController.Get<SP_AllowSpecialKeysAsync>(), SpecialKeys.Async.Count > 0);
+                },
+                option.Name,
+                "allow_key_" + option.Id.ToLowerInvariant()
+            );
+            keyToggle.EnabledWhen = () => MainCore.IsModEnabled;
+            keyToggle.Label.gameObject.AddComponent<TextLocalization>().Init(key, option.Name, Core.Tr);
+            objects[keyToggle.Id] = keyToggle;
+            keyToggle.Rect.AddToolTip(O5KitAdapters.Ctx, () => Core.Tr.Get("DESC_ALLOW_SPECIAL_KEY", "Lets this key count as a hit key (the game ignores it by default)"));
+        }
 
         var (_, uiOptions) = O5Factory.Card(O5KitAdapters.Ctx, content.transform,
             Core.Tr.Get("UI_OPTIONS", "UI"), true, null, null,

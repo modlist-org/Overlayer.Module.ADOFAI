@@ -1,4 +1,6 @@
 using Newtonsoft.Json.Linq;
+using System.Collections.Generic;
+using System.Linq;
 using Overlayer.IO.Interface;
 
 namespace Overlayer.Module.ADOFAI.IO;
@@ -8,7 +10,7 @@ public sealed class ADOFAISettings : ISettingsFile {
     public bool LinuxTextInputFix = true;
     public bool HideTitle = false;
     public bool BlockInputWhenOpened = true;
-    public bool AllowRightAlt = true;
+    public HashSet<string> AllowedSpecialKeys = ["RightAlt"];
     public bool FileFeature = false;
     public bool LazyPatches = true;
     public bool LazyAccess = true;
@@ -24,7 +26,7 @@ public sealed class ADOFAISettings : ISettingsFile {
             [nameof(LinuxTextInputFix)] = LinuxTextInputFix,
             [nameof(HideTitle)] = HideTitle,
             [nameof(BlockInputWhenOpened)] = BlockInputWhenOpened,
-            [nameof(AllowRightAlt)] = AllowRightAlt,
+            [nameof(AllowedSpecialKeys)] = new JArray(AllowedSpecialKeys),
             [nameof(FileFeature)] = FileFeature,
             [nameof(LazyPatches)] = LazyPatches,
             [nameof(LazyAccess)] = LazyAccess,
@@ -41,7 +43,11 @@ public sealed class ADOFAISettings : ISettingsFile {
         LinuxTextInputFix = Read(token, nameof(LinuxTextInputFix), LinuxTextInputFix);
         HideTitle = Read(token, nameof(HideTitle), HideTitle);
         BlockInputWhenOpened = Read(token, nameof(BlockInputWhenOpened), BlockInputWhenOpened);
-        AllowRightAlt = Read(token, nameof(AllowRightAlt), AllowRightAlt);
+        if(token[nameof(AllowedSpecialKeys)] is JArray keys) {
+            AllowedSpecialKeys = [.. keys.Values<string>().OfType<string>()];
+        } else if(!Read(token, "AllowRightAlt", true)) {
+            AllowedSpecialKeys.Remove("RightAlt");
+        }
         FileFeature = Read(token, nameof(FileFeature), FileFeature);
         LazyPatches = Read(token, nameof(LazyPatches), LazyPatches);
         LazyAccess = Read(token, nameof(LazyAccess), LazyAccess);
