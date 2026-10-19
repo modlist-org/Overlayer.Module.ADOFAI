@@ -70,9 +70,10 @@ public sealed class SP_AllowSpecialKeysAsync() : SafeConditionalPatch(nameof(SP_
 
     private static FieldInfo? _label;
 
-    // List<AsyncKeyCode>: Assembly-CSharp isn't referenced, so read AsyncKeyCode.label reflectively.
-    private static void PostfixImpl(object __result) {
-        if(__result is not IList list) return;
+    // void GetSpecialInput(List<AsyncKeyCode> keys) fills `keys` in place.
+    // Assembly-CSharp isn't referenced, so read AsyncKeyCode.label reflectively.
+    private static void PostfixImpl(object keys) {
+        if(keys is not IList list) return;
         for(int i = list.Count - 1; i >= 0; i--) {
             object item = list[i];
             _label ??= item.GetType().GetField("label");
