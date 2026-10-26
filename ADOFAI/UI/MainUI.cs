@@ -96,31 +96,20 @@ public static class MainUI {
            .Init("ADOFAI", "ADOFAI", Core.Tr);
 
         if (Application.platform == RuntimePlatform.LinuxPlayer) {
-            O5Toggle linuxTextInputToggle = O5Factory.Toggle(O5KitAdapters.Ctx,
-                O5Factory.Row(O5KitAdapters.Ctx, content.transform),
-                defSet.LinuxTextInputFix,
-                Core.Config.LinuxTextInputFix,
-                toggle => {
+            O5Toggle linuxTextInputToggle = O5Factory.Toggle(O5KitAdapters.Ctx, O5Factory.Row(O5KitAdapters.Ctx, content.transform), "linux_text_input_fix", new O5ToggleOptions { DefaultValue = defSet.LinuxTextInputFix, Value = Core.Config.LinuxTextInputFix, Text = "Linux Text Input Fix", OnChanged = toggle => {
                     Core.Config.LinuxTextInputFix = toggle;
                     Core.ConfigFile.RequestSave();
 
                     ApplyState(SafePatchController.Get<SP_LinuxTMPKeyInput>(), toggle);
                     ApplyState(SafePatchController.Get<SP_LinuxLegacyKeyInput>(), toggle);
-                },
-                "Linux Text Input Fix",
-                "linux_text_input_fix"
-            );
+                } });
             linuxTextInputToggle.EnabledWhen = () => MainCore.IsModEnabled;
             linuxTextInputToggle.Label.gameObject.AddComponent<TextLocalization>().Init("LINUX_TEXT_INPUT_FIX", "Linux Text Input Fix", Core.Tr);
             objects[linuxTextInputToggle.Id] = linuxTextInputToggle;
             linuxTextInputToggle.Rect.AddToolTip(O5KitAdapters.Ctx, () => TooltipText("DESC_LINUX_TEXT_INPUT_FIX", "Fixes duplicate characters and Shift-modified text input on Linux", "ADV_DESC_LINUX_TEXT_INPUT_FIX", "Prevents Linux Unity builds from double-processing input caused\nby OS text events and physical key events firing simultaneously.\n\nThe Process method tracks frame counts and pending states to\npass only the first arriving event of a pair while dropping duplicates.\n\nIt also resolves corrupted Shift and CapsLock inputs\nby analyzing key codes and modifier states via bitwise operations to recalculate the exact ASCII characters."));
         }
 
-        O5Toggle blockInputToggle = O5Factory.Toggle(O5KitAdapters.Ctx,
-            O5Factory.Row(O5KitAdapters.Ctx, content.transform),
-            defSet.BlockInputWhenOpened,
-            Core.Config.BlockInputWhenOpened,
-            toggle => {
+        O5Toggle blockInputToggle = O5Factory.Toggle(O5KitAdapters.Ctx, O5Factory.Row(O5KitAdapters.Ctx, content.transform), "block_input_when_opened", new O5ToggleOptions { DefaultValue = defSet.BlockInputWhenOpened, Value = Core.Config.BlockInputWhenOpened, Text = "Block Input When Opened", OnChanged = toggle => {
                 Core.Config.BlockInputWhenOpened = toggle;
                 Core.ConfigFile.RequestSave();
                 UpdateInputBlockerState(toggle);
@@ -128,28 +117,18 @@ public static class MainUI {
                 ApplyState(SafePatchController.Get<SP_BlockLegacyInput>(), toggle);
                 ApplyState(SafePatchController.Get<SP_BlockInputMethod>(), toggle);
                 ApplyState(SafePatchController.Get<SP_BlockDirectInput>(), toggle);
-            },
-            "Block Input When Opened",
-            "block_input_when_opened"
-        );
+            } });
         blockInputToggle.EnabledWhen = () => MainCore.IsModEnabled;
         blockInputToggle.Label.gameObject.AddComponent<TextLocalization>().Init("BLOCK_INPUT_WHEN_OPENED", "Block Input When Opened", Core.Tr);
         objects[blockInputToggle.Id] = blockInputToggle;
         blockInputToggle.Rect.AddToolTip(O5KitAdapters.Ctx, () => TooltipText("DESC_BLOCK_INPUT_WHEN_OPENED", "Blocks game inputs while the Overlayer UI is opened", "ADV_DESC_BLOCK_INPUT_WHEN_OPENED", "Hooks into ADOFAI's input architecture across 4 distinct layers:\n\n1. Async Input: Patches scrPlayer.ValidInputWasTriggered and clears key masks in AsyncInputManager.\n2. Legacy Input: Patches RDInputType_Keyboard.CheckKeyState to block editing and mouse input.\n3. Input Method: Intercepts OptionsPanelsCLS.CheckInputs to suppress menu input events.\n4. Direct Input: Uses Transpiler on level select Update methods to redirect UnityEngine.Input calls to custom wrappers.\n\nAlso creates a full-screen Raycast target (EmptyGraphic) behind the UI to block UI-level interactions"));
 
-        O5Toggle showAutoJudgmentToggle =O5Factory.Toggle(O5KitAdapters.Ctx,
-            O5Factory.Row(O5KitAdapters.Ctx, content.transform),
-            defSet.ShowAutoplayJudgment,
-            Core.Config.ShowAutoplayJudgment,
-            toggle => {
+        O5Toggle showAutoJudgmentToggle =O5Factory.Toggle(O5KitAdapters.Ctx, O5Factory.Row(O5KitAdapters.Ctx, content.transform), "show_autoplay_judgment", new O5ToggleOptions { DefaultValue = defSet.ShowAutoplayJudgment, Value = Core.Config.ShowAutoplayJudgment, Text = "Show Autoplay Judgment", OnChanged = toggle => {
                 Core.Config.ShowAutoplayJudgment = toggle;
                 Core.ConfigFile.RequestSave();
 
                 ApplyState(SafePatchController.Get<SP_ShowAutoJudgment>(), toggle);
-            },
-            "Show Autoplay Judgment",
-            "show_autoplay_judgment"
-        );
+            } });
         showAutoJudgmentToggle.EnabledWhen = () => MainCore.IsModEnabled;
         showAutoJudgmentToggle.Label.gameObject.AddComponent<TextLocalization>().Init("SHOW_AUTOPLAY_JUDGMENT", "Show Autoplay Judgment", Core.Tr);
         objects[showAutoJudgmentToggle.Id] = showAutoJudgmentToggle;
@@ -163,19 +142,21 @@ public static class MainUI {
             string key = "ALLOW_KEY_" + option.Id.ToUpperInvariant();
             O5Toggle keyToggle = O5Factory.Toggle(O5KitAdapters.Ctx,
                 O5Factory.Row(O5KitAdapters.Ctx, allowKeysCard),
-                defSet.AllowedSpecialKeys.Contains(option.Id),
-                Core.Config.AllowedSpecialKeys.Contains(option.Id),
-                toggle => {
-                    if(toggle) Core.Config.AllowedSpecialKeys.Add(option.Id);
-                    else Core.Config.AllowedSpecialKeys.Remove(option.Id);
-                    Core.ConfigFile.RequestSave();
+                "allow_key_" + option.Id.ToLowerInvariant(),
+                new O5ToggleOptions {
+                    DefaultValue = defSet.AllowedSpecialKeys.Contains(option.Id),
+                    Value = Core.Config.AllowedSpecialKeys.Contains(option.Id),
+                    Text = option.Name,
+                    OnChanged = toggle => {
+                        if(toggle) Core.Config.AllowedSpecialKeys.Add(option.Id);
+                        else Core.Config.AllowedSpecialKeys.Remove(option.Id);
+                        Core.ConfigFile.RequestSave();
 
-                    SpecialKeys.Refresh();
-                    ApplyState(SafePatchController.Get<SP_AllowSpecialKeys>(), SpecialKeys.Any);
-                    ApplyState(SafePatchController.Get<SP_AllowSpecialKeysAsync>(), SpecialKeys.Async.Count > 0);
-                },
-                option.Name,
-                "allow_key_" + option.Id.ToLowerInvariant()
+                        SpecialKeys.Refresh();
+                        ApplyState(SafePatchController.Get<SP_AllowSpecialKeys>(), SpecialKeys.Any);
+                        ApplyState(SafePatchController.Get<SP_AllowSpecialKeysAsync>(), SpecialKeys.Async.Count > 0);
+                    },
+                }
             );
             keyToggle.EnabledWhen = () => MainCore.IsModEnabled;
             keyToggle.Label.gameObject.AddComponent<TextLocalization>().Init(key, option.Name, Core.Tr);
@@ -191,17 +172,11 @@ public static class MainUI {
             value => Core.Config.HideAll = value, "HIDE_ALL", "Hide All", "hide_all",
             "Hides the entire game HUD and editor UI. Overlayer UI remains visible.");
 
-        O5Toggle hideTitleToggle = O5Factory.Toggle(O5KitAdapters.Ctx,
-            O5Factory.Row(O5KitAdapters.Ctx, uiOptions),
-            defSet.HideTitle,
-            Core.Config.HideTitle,
-            toggle => {
+        O5Toggle hideTitleToggle = O5Factory.Toggle(O5KitAdapters.Ctx, O5Factory.Row(O5KitAdapters.Ctx, uiOptions), "hide_title", new O5ToggleOptions { DefaultValue = defSet.HideTitle, Value = Core.Config.HideTitle, Text = "Hide Title", OnChanged = toggle => {
                 Core.Config.HideTitle = toggle;
                 Core.ConfigFile.RequestSave();
                 GameAccess.DontShowTitles.TrySet(null, toggle);
-            },
-            "Hide Title",
-            "hide_title");
+            } });
         hideTitleToggle.EnabledWhen = () => MainCore.IsModEnabled;
         hideTitleToggle.Label.gameObject.AddComponent<TextLocalization>().Init("HIDE_TITLE", "Hide Title", Core.Tr);
         objects[hideTitleToggle.Id] = hideTitleToggle;
@@ -220,57 +195,36 @@ public static class MainUI {
             value => Core.Config.HideEditorIcons = value, "HIDE_EDITOR_ICONS", "Hide Editor Icons", "hide_editor_icons",
             "Hides the editor difficulty, autoplay, no-fail, and key-limiter icons.");
 
-        O5Toggle fileAttemptToggle = O5Factory.Toggle(O5KitAdapters.Ctx,
-            O5Factory.Row(O5KitAdapters.Ctx, content.transform),
-            defSet.FileFeature,
-            Core.Config.FileFeature,
-            toggle => {
+        O5Toggle fileAttemptToggle = O5Factory.Toggle(O5KitAdapters.Ctx, O5Factory.Row(O5KitAdapters.Ctx, content.transform), "file_feature", new O5ToggleOptions { DefaultValue = defSet.FileFeature, Value = Core.Config.FileFeature, Text = "File Feature", OnChanged = toggle => {
                 Core.Config.FileFeature = toggle;
                 Core.ConfigFile.RequestSave();
 
                 ApplyState(SafePatchController.Get<SP_FileAttemptLoad>(), toggle);
                 ApplyState(SafePatchController.Get<SP_FileAttemptPlay>(), toggle);
-            },
-            "File Feature",
-            "file_feature"
-        );
+            } });
         fileAttemptToggle.EnabledWhen = () => MainCore.IsModEnabled;
         fileAttemptToggle.Label.gameObject.AddComponent<TextLocalization>().Init("FILE_FEATURE", "File Feature", Core.Tr);
         objects[fileAttemptToggle.Id] = fileAttemptToggle;
         fileAttemptToggle.Rect.AddToolTip(O5KitAdapters.Ctx, () => TooltipText("DESC_FILE_FEATURE", "Stores anything per map into Overlayer_Attempts.json next to it", "ADV_DESC_FILE_FEATURE", "Loads the file when a level loads and saves on every play.\n\nPowers the FileAttempts and FileTileAttempts tags."));
 
-        O5Toggle lazyPatchesToggle = O5Factory.Toggle(O5KitAdapters.Ctx,
-            O5Factory.Row(O5KitAdapters.Ctx, content.transform),
-            defSet.LazyPatches,
-            Core.Config.LazyPatches,
-            toggle => {
+        O5Toggle lazyPatchesToggle = O5Factory.Toggle(O5KitAdapters.Ctx, O5Factory.Row(O5KitAdapters.Ctx, content.transform), "lazy_patches", new O5ToggleOptions { DefaultValue = defSet.LazyPatches, Value = Core.Config.LazyPatches, Text = "Lazy Patches", OnChanged = toggle => {
                 Core.Config.LazyPatches = toggle;
                 Core.ConfigFile.RequestSave();
 
                 if(!toggle) {
                     SafePatchController.ApplyAll();
                 }
-            },
-            "Lazy Patches",
-            "lazy_patches"
-        );
+            } });
         lazyPatchesToggle.EnabledWhen = () => MainCore.IsModEnabled;
         lazyPatchesToggle.Label.gameObject.AddComponent<TextLocalization>().Init("LAZY_PATCHES", "Lazy Patches", Core.Tr);
         objects[lazyPatchesToggle.Id] = lazyPatchesToggle;
         lazyPatchesToggle.Rect.AddToolTip(O5KitAdapters.Ctx, () => TooltipText("DESC_LAZY_PATCHES", "Apply game patches only when their tags are used (recommended)", "ADV_DESC_LAZY_PATCHES", "Lazy keeps startup fast and leaves game code alone until a tag needs its patch, releasing it once unused.\n\nIf you're making overlays with lots of tags, turning this off to apply everything at game start may be better."));
 
-        O5Toggle lazyAccessToggle = O5Factory.Toggle(O5KitAdapters.Ctx,
-            O5Factory.Row(O5KitAdapters.Ctx, content.transform),
-            defSet.LazyAccess,
-            Core.Config.LazyAccess,
-            toggle => {
+        O5Toggle lazyAccessToggle = O5Factory.Toggle(O5KitAdapters.Ctx, O5Factory.Row(O5KitAdapters.Ctx, content.transform), "lazy_access", new O5ToggleOptions { DefaultValue = defSet.LazyAccess, Value = Core.Config.LazyAccess, Text = "Lazy Access", OnChanged = toggle => {
                 Core.Config.LazyAccess = toggle;
                 Core.ConfigFile.RequestSave();
                 SafeAccess.ModeOverride = toggle ? SafeResolveMode.Lazy : null;
-            },
-            "Lazy Access",
-            "lazy_access"
-        );
+            } });
         lazyAccessToggle.EnabledWhen = () => MainCore.IsModEnabled;
         lazyAccessToggle.Label.gameObject.AddComponent<TextLocalization>().Init("LAZY_ACCESS", "Lazy Access", Core.Tr);
         objects[lazyAccessToggle.Id] = lazyAccessToggle;
@@ -292,17 +246,11 @@ public static class MainUI {
 
     private static void AddUiHideToggle(Transform parent, bool defaultValue, bool value, Action<bool> set,
         string localizationKey, string fallback, string id, string tooltip) {
-        var toggle = O5Factory.Toggle(O5KitAdapters.Ctx,
-            O5Factory.Row(O5KitAdapters.Ctx, parent),
-            defaultValue,
-            value,
-            enabled => {
+        var toggle = O5Factory.Toggle(O5KitAdapters.Ctx, O5Factory.Row(O5KitAdapters.Ctx, parent), id, new O5ToggleOptions { DefaultValue = defaultValue, Value = value, Text = fallback, OnChanged = enabled => {
                 set(enabled);
                 Core.ConfigFile.RequestSave();
                 Core.ApplyUiVisibility();
-            },
-            fallback,
-            id);
+            } });
         toggle.EnabledWhen = () => MainCore.IsModEnabled;
         toggle.Label.gameObject.AddComponent<TextLocalization>().Init(localizationKey, fallback, Core.Tr);
         toggle.Rect.AddToolTip(O5KitAdapters.Ctx, () => tooltip);

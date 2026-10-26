@@ -10,19 +10,16 @@
     </PropertyGroup>
 
     <PropertyGroup>
-        <!-- O5Kit (UI + input toolkit). Module is Mono-only: Debug/Release map to O5Kit *_Mono. -->
-        <O5KitProject>$(MSBuildProjectDirectory)/../../O5Kit/src/O5Kit/O5Kit.csproj</O5KitProject>
-        <O5KitConfiguration Condition="$(Configuration.Contains('Debug'))">Debug_Mono</O5KitConfiguration>
-        <O5KitConfiguration Condition="!$(Configuration.Contains('Debug'))">Release_Mono</O5KitConfiguration>
+        <!-- O5Kit (UI + input toolkit): shared versioned DLL from O5kitdll. -->
+        <O5KitDll>$(MSBuildProjectDirectory)/../../O5kitdll</O5KitDll>
         <UnityPath Condition="'$(UnityPath)' == '' and Exists('/home/kkitut/.local/share/Steam/steamapps/common/Melatonin/Melatonin_Data/Managed/UnityEngine.CoreModule.dll')">/home/kkitut/.local/share/Steam/steamapps/common/Melatonin/Melatonin_Data/Managed</UnityPath>
         <UnityPath Condition="'$(UnityPath)' == ''">$(GamePath)/$(GameData)/Managed</UnityPath>
     </PropertyGroup>
 
     <ItemGroup>
-        <ProjectReference Include="$(O5KitProject)">
-            <SetConfiguration>Configuration=$(O5KitConfiguration)</SetConfiguration>
-            <SetTargetFramework>TargetFramework=netstandard2.1</SetTargetFramework>
-        </ProjectReference>
+        <Reference Include="O5Kit.1.0">
+            <HintPath>$(O5KitDll)/O5Kit.1.0.dll</HintPath>
+        </Reference>
     </ItemGroup>
 	
     <ItemGroup>
@@ -163,7 +160,8 @@
 	<Target Name="PostBuild" AfterTargets="Build" Condition="'$(SkipPostBuild)' != 'true'">
         <MakeDir Directories="$(GamePath)/UserLibs" Condition="'$(TargetPath)' != ''" />
         <Copy Condition="'$(TargetPath)' != ''" SourceFiles="$(TargetPath)" DestinationFolder="$(GamePath)/UserLibs" SkipUnchangedFiles="true" />
-        <Copy SourceFiles="$(TargetDir)O5Kit.dll" DestinationFolder="$(GamePath)/UserLibs" SkipUnchangedFiles="true" Condition="Exists('$(TargetDir)O5Kit.dll')" />
+        <Copy SourceFiles="$(TargetDir)O5Kit.1.0.dll" DestinationFolder="$(GamePath)/UserLibs" SkipUnchangedFiles="true" Condition="Exists('$(TargetDir)O5Kit.1.0.dll')" />
+        <Copy SourceFiles="$(O5KitDll)/O5KitNative.win.dll;$(O5KitDll)/O5KitNative.linux.so;$(O5KitDll)/O5KitNative.mac.dylib" DestinationFolder="$(GamePath)/UserLibs" SkipUnchangedFiles="true" />
 
 		<ItemGroup>
 			<ExportFiles Include="Resource/Export/**/*.*" />
@@ -179,7 +177,7 @@
         </PropertyGroup>
         <MakeDir Directories="$(BuildOutputDir)\UserLibs" Condition="'$(TargetPath)' != ''" />
         <Copy Condition="'$(TargetPath)' != ''" SourceFiles="$(TargetPath)" DestinationFolder="$(BuildOutputDir)\UserLibs" SkipUnchangedFiles="true" />
-        <Copy SourceFiles="$(TargetDir)O5Kit.dll" DestinationFolder="$(BuildOutputDir)\UserLibs" SkipUnchangedFiles="true" Condition="Exists('$(TargetDir)O5Kit.dll')" />
+        <Copy SourceFiles="$(TargetDir)O5Kit.1.0.dll" DestinationFolder="$(BuildOutputDir)\UserLibs" SkipUnchangedFiles="true" Condition="Exists('$(TargetDir)O5Kit.1.0.dll')" />
         <MakeDir Directories="$(BuildOutputDir)\UserData\Overlayer\Module\ADOFAI" />
         <Copy SourceFiles="@(ExportFiles)" DestinationFiles="@(ExportFiles->'$(BuildOutputDir)\UserData\Overlayer\Module\ADOFAI\%(RecursiveDir)%(Filename)%(Extension)')" SkipUnchangedFiles="true" />
     </Target>
